@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Verificador de precios</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 34px;
+}
+
+input[type="file"] {
+  font-size: 18px;
+  margin: 15px;
+}
+
+input[type="text"] {
+  font-size: 26px;
+  padding: 12px;
+  width: 90%;
+  border-radius: 10px;
+  border: none;
+  text-align: center;
+}
+
+button {
+  font-size: 28px;
+  padding: 18px;
+  margin: 15px;
+  width: 90%;
+  border-radius: 14px;
+  border: none;
+  background: #22c55e;
+  color: white;
+  font-weight: bold;
+}
+
+button:active {
+  background: #16a34a;
+}
+
+#producto {
+  font-size: 28px;
+  margin-top: 25px;
+}
+
+#precio {
+  font-size: 70px;
+  font-weight: bold;
+  color: #22c55e;
+  margin-top: 10px;
+}
+
+#reader {
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Verificador de precios</h1>
+
+<input type="file" id="fileInput">
+
+<br>
+
+<input type="text" id="buscarCodigo" placeholder="Ingresar código">
+
+<button onclick="buscarManual()">Buscar</button>
+
+<button onclick="iniciarScanner()">Escanear con cámara</button>
+
+<div id="reader"></div>
+
+<h2 id="producto"></h2>
+<div id="precio"></div>
+
+<script>
+let baseDatos = [];
+
+document.getElementById('fileInput').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(event){
+        const text = event.target.result;
+        const rows = text.split("\n");
+        baseDatos = [];
+
+        rows.slice(1).forEach(r=>{
+            const c = r.split(/[,;\\t]/);
+            baseDatos.push({
+                codigo: c[0]?.trim(),
+                nombre: c[1]?.trim(),
+                precio: c[5]?.trim()
+            });
+        });
+
+        localStorage.setItem("productos", JSON.stringify(baseDatos));
+        alert("Base de datos actualizada");
+    };
+
+    reader.readAsText(file);
+});
+
+window.onload = function(){
+    const guardado = localStorage.getItem("productos");
+    if(guardado){
+        baseDatos = JSON.parse(guardado);
+    }
+}
+
+function buscarManual(){
+    const codigo = document.getElementById("buscarCodigo").value;
+    buscarProducto(codigo);
+}
+
+function iniciarScanner(){
+    const html5QrCode = new Html5Qrcode("reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 280 },
+        codigo => {
+            buscarProducto(codigo);
+            html5QrCode.stop();
+        }
+    );
+}
+
+function buscarProducto(codigo){
+    const producto = baseDatos.find(p => p.codigo == codigo);
+
+    if(producto){
+        document.getElementById("producto").innerText = producto.nombre;
+        document.getElementById("precio").innerText = "$ " + producto.precio;
+    } else {
+        document.getElementById("producto").innerText = "Producto no encontrado";
+        document.getElementById("precio").innerText = "";
+    }
+}
+</script>
+
+</body>
+</html>
