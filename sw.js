@@ -1,15 +1,12 @@
 /* Service worker: permite usar la app sin internet.
  * Estrategia "red primero": si hay conexión se baja la versión nueva,
  * si no, se usa la copia guardada. Cambiar CACHE al publicar cambios grandes. */
-const CACHE = 'verificador-v7';
+const CACHE = 'verificador-v8';
 const ARCHIVOS = [
   './',
   './index.html',
   './css/app.css',
   './js/db.js',
-  './js/config.js',
-  './js/nube.js',
-  './vendor/supabase.js',
   './js/acceso.js',
   './icons/portada.jpg',
   './js/importar.js',

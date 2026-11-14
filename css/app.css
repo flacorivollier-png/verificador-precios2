@@ -330,7 +330,7 @@ input[type=checkbox] { accent-color: var(--verde); }
   .portada-form { padding: 12px 14px 4px; }
   .portada-form h2 { font-size: 19px; margin-bottom: 6px; }
   .acceso-ayuda { font-size: 13px; margin-bottom: 6px; }
-  .portada-form input[type=text], .portada-form input[type=password], .portada-form input[type=email] { padding: 10px 12px; margin: 6px 0; }
+  .portada-form input[type=text], .portada-form input[type=password] { padding: 10px 12px; margin: 6px 0; }
   .acceso-check { margin: 6px 2px; }
   .acceso-link { padding: 6px; }
 }
@@ -370,7 +370,7 @@ input[type=checkbox] { accent-color: var(--verde); }
   letter-spacing: .5px;
 }
 .acceso-ayuda { margin: 0 0 10px; text-align: center; font-size: 14px; color: #e5d6c1; line-height: 1.35; }
-.portada-form input[type=text], .portada-form input[type=password], .portada-form input[type=email] {
+.portada-form input[type=text], .portada-form input[type=password] {
   display: block;
   width: 100%;
   font-size: 17px;
@@ -401,15 +401,3 @@ input[type=checkbox] { accent-color: var(--verde); }
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-
-/* ===================== roles / modo nube ===================== */
-body:not(.es-admin) .solo-admin { display: none !important; }
-body:not(.modo-nube) .solo-nube { display: none !important; }
-body.modo-nube .solo-local { display: none !important; }
-.usuarios li { cursor: default; flex-wrap: wrap; }
-.usuarios .txt .n { -webkit-line-clamp: 1; }
-.usuarios .estado { font-size: 13px; font-weight: 600; padding: 3px 8px; border-radius: 20px; background: var(--borde); color: var(--texto); }
-.usuarios .estado.pendiente { background: #f1d9b5; color: #7a4a17; }
-.usuarios .estado.admin { background: var(--verde); color: var(--boton-txt); }
-.usuarios .acciones { display: flex; gap: 8px; width: 100%; }
-.usuarios .acciones .btn { margin: 0; padding: 10px; font-size: 15px; }
