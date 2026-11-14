@@ -1,165 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Verificador de precios</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<style>
-body{
-  margin:0;
-  font-family: Arial;
-  background:#0f172a;
-  color:white;
-  display:flex;
-  flex-direction:row;
-  height:100vh;
-}
-
-.panel{
-  width:40%;
-  padding:20px;
-}
-
-.resultado{
-  width:60%;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-}
-
-h1{
-  font-size:32px;
-}
-
-button{
-  font-size:28px;
-  padding:18px;
-  margin-top:15px;
-  width:100%;
-  border-radius:12px;
-  border:none;
-  background:#22c55e;
-  color:white;
-  font-weight:bold;
-}
-
-input{
-  font-size:26px;
-  padding:10px;
-  width:100%;
-  border-radius:10px;
-  border:none;
-}
-
-#producto{
-  font-size:40px;
-}
-
-#precio{
-  font-size:110px;
-  color:#22c55e;
-  font-weight:bold;
-}
-
-#reader{
-  width:350px;
-  margin-top:20px;
-}
-</style>
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Precios">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
 </head>
-
 <body>
 
-<div class="panel">
+<header class="topbar">
+  <h1>Verificador</h1>
+  <span id="estadoBase" class="estado-base">Sin datos</span>
+</header>
 
-<h1>Verificador</h1>
+<main>
+  <!-- ===================== CONSULTAR ===================== -->
+  <section id="vista-consultar" class="vista activa">
+    <div id="scannerWrap" class="scanner-wrap oculto">
+      <div id="reader"></div>
+      <div class="scanner-acciones">
+        <button id="btnSiguiente" class="btn btn-verde oculto">Escanear otro</button>
+        <button id="btnCerrarScanner" class="btn btn-gris">Cerrar cámara</button>
+      </div>
+    </div>
 
-<input type="file" id="fileInput">
+    <button id="btnEscanear" class="btn btn-verde btn-grande">📷 Escanear código</button>
 
-<br><br>
+    <form id="formBuscar" class="buscador" autocomplete="off">
+      <input id="inputBuscar" type="search" inputmode="search" placeholder="Código o nombre del producto" enterkeyhint="search">
+      <button type="submit" class="btn btn-azul">Buscar</button>
+    </form>
 
-<input type="text" id="buscarCodigo" placeholder="Código">
+    <div id="resultado"></div>
+    <ul id="listaResultados" class="lista"></ul>
+  </section>
 
-<button onclick="buscarManual()">Buscar</button>
+  <!-- ===================== FICHAS ===================== -->
+  <section id="vista-fichas" class="vista">
+    <h2>Productos con ficha</h2>
+    <p class="ayuda">Productos a los que les agregaste foto, descripción o características.</p>
+    <div class="filtros">
+      <label><input type="checkbox" id="soloDestacados"> Solo destacados ★</label>
+    </div>
+    <ul id="listaFichas" class="lista"></ul>
+  </section>
 
-<button onclick="iniciarScanner()">Escanear</button>
+  <!-- ===================== DATOS ===================== -->
+  <section id="vista-datos" class="vista">
+    <h2>Lista de precios</h2>
+    <p class="ayuda">Subí tu archivo <b>Excel (.xlsx / .xls)</b> o <b>CSV</b>. Al actualizarlo, las fotos y características que cargaste <b>se conservan</b>.</p>
+    <div id="infoBase" class="info-box">Todavía no cargaste ninguna lista.</div>
+    <label class="btn btn-verde btn-archivo">
+      📄 Cargar / actualizar lista
+      <input type="file" id="inputArchivo" accept=".csv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    </label>
+    <div id="progreso" class="progreso oculto"><div id="barra" class="barra"></div><span id="progresoTxt"></span></div>
 
-<div id="reader"></div>
+    <h2>Copia de seguridad de fichas</h2>
+    <p class="ayuda">Las fotos y características quedan guardadas sólo en este teléfono. Hacé una copia de vez en cuando (se guarda en Archivos / iCloud Drive) para no perderlas o para pasarlas a otro equipo.</p>
+    <div id="infoFichas" class="info-box"></div>
+    <button id="btnExportar" class="btn btn-azul">⬇️ Exportar copia de fichas</button>
+    <label class="btn btn-gris btn-archivo">
+      ⬆️ Importar copia de fichas
+      <input type="file" id="inputBackup" accept=".json,application/json">
+    </label>
 
-</div>
+    <h2>Instalar en el iPhone</h2>
+    <ol class="ayuda">
+      <li>Abrí esta página en <b>Safari</b>.</li>
+      <li>Tocá el botón <b>Compartir</b> (cuadrado con flecha).</li>
+      <li>Elegí <b>“Agregar a pantalla de inicio”</b>.</li>
+    </ol>
+    <p class="ayuda">Instalada así funciona sin internet y el iPhone no borra los datos guardados.</p>
+    <p class="ayuda version">Versión <span id="version"></span></p>
+  </section>
+</main>
 
-<div class="resultado">
-<h2 id="producto"></h2>
-<div id="precio"></div>
-</div>
+<nav class="tabs">
+  <button data-vista="consultar" class="tab activa">🔎<span>Consultar</span></button>
+  <button data-vista="fichas" class="tab">⭐<span>Fichas</span></button>
+  <button data-vista="datos" class="tab">⚙️<span>Datos</span></button>
+</nav>
 
-<script>
-let baseDatos = [];
+<!-- ===================== DIALOGO: COLUMNAS ===================== -->
+<dialog id="dlgColumnas">
+  <form method="dialog" class="dlg">
+    <h2>¿Qué hay en cada columna?</h2>
+    <p class="ayuda">Revisá que cada dato apunte a la columna correcta. <span id="dlgFilas"></span></p>
+    <div id="mapeo" class="mapeo"></div>
+    <div class="tabla-scroll"><table id="preview"></table></div>
+    <div class="dlg-botones">
+      <button value="cancelar" class="btn btn-gris">Cancelar</button>
+      <button value="ok" id="btnConfirmarColumnas" class="btn btn-verde">Importar</button>
+    </div>
+  </form>
+</dialog>
 
-document.getElementById('fileInput').addEventListener('change', function(e){
-    const file = e.target.files[0];
-    const reader = new FileReader();
+<!-- ===================== DIALOGO: EDITAR FICHA ===================== -->
+<dialog id="dlgFicha">
+  <form method="dialog" class="dlg" id="formFicha">
+    <h2 id="fichaTitulo">Ficha</h2>
+    <p class="ayuda" id="fichaCodigo"></p>
 
-    reader.onload = function(event){
-        const text = event.target.result;
-        const rows = text.split("\n");
-        baseDatos = [];
+    <div class="foto-edit">
+      <img id="fichaFoto" alt="" class="oculto">
+      <div id="fichaSinFoto" class="sin-foto">Sin foto</div>
+    </div>
+    <div class="fila-botones">
+      <label class="btn btn-azul btn-archivo">📷 Sacar foto
+        <input type="file" id="inputFotoCamara" accept="image/*" capture="environment">
+      </label>
+      <label class="btn btn-gris btn-archivo">🖼️ Galería
+        <input type="file" id="inputFotoGaleria" accept="image/*">
+      </label>
+    </div>
+    <button type="button" id="btnQuitarFoto" class="btn btn-link oculto">Quitar foto</button>
 
-        rows.slice(1).forEach(r=>{
-            const c = r.split(/[,;\t]/);
-            baseDatos.push({
-                codigo:c[0]?.trim(),
-                nombre:c[1]?.trim(),
-                precio:c[5]?.trim()
-            });
-        });
+    <label class="campo">Descripción
+      <textarea id="fichaDescripcion" rows="3" placeholder="Ej: Ideal para…"></textarea>
+    </label>
+    <label class="campo">Características <small>(una por línea, ej: <i>Marca: Arcor</i>)</small>
+      <textarea id="fichaCaracteristicas" rows="5" placeholder="Marca: …&#10;Contenido: …&#10;Origen: …"></textarea>
+    </label>
+    <label class="check"><input type="checkbox" id="fichaDestacado"> ★ Producto destacado</label>
 
-        localStorage.setItem("productos", JSON.stringify(baseDatos));
-        alert("Base de datos cargada");
-    };
+    <div class="dlg-botones">
+      <button value="cancelar" class="btn btn-gris">Cancelar</button>
+      <button value="guardar" class="btn btn-verde">Guardar</button>
+    </div>
+    <button type="button" id="btnBorrarFicha" class="btn btn-link peligro oculto">Borrar ficha completa</button>
+  </form>
+</dialog>
 
-    reader.readAsText(file);
-});
+<div id="toast" class="toast"></div>
 
-window.onload = function(){
-    const guardado = localStorage.getItem("productos");
-    if(guardado){
-        baseDatos = JSON.parse(guardado);
-    }
-}
-
-function buscarManual(){
-    const codigo = document.getElementById("buscarCodigo").value;
-    buscarProducto(codigo);
-}
-
-function iniciarScanner(){
-    const html5QrCode = new Html5Qrcode("reader");
-
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 300 },
-        codigo => {
-            buscarProducto(codigo);
-            html5QrCode.stop();
-        }
-    );
-}
-
-function buscarProducto(codigo){
-    const producto = baseDatos.find(p => p.codigo == codigo);
-
-    if(producto){
-        document.getElementById("producto").innerText = producto.nombre;
-        document.getElementById("precio").innerText = "$ " + producto.precio;
-    }else{
-        document.getElementById("producto").innerText = "No encontrado";
-        document.getElementById("precio").innerText = "";
-    }
-}
-</script>
-
+<script src="vendor/html5-qrcode.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/importar.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
