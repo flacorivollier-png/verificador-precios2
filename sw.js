@@ -1,7 +1,7 @@
 /* Service worker: permite usar la app sin internet.
  * Estrategia "red primero": si hay conexión se baja la versión nueva,
  * si no, se usa la copia guardada. Cambiar CACHE al publicar cambios grandes. */
-const CACHE = 'verificador-v3';
+const CACHE = 'verificador-v4';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -15,6 +15,7 @@ const ARCHIVOS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
+  './icons/logo-guille.png',
 ];
 
 self.addEventListener('install', e => {

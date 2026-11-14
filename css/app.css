@@ -41,6 +41,9 @@ body {
   border-bottom: 1px solid var(--borde);
 }
 .topbar h1 { font-size: 22px; margin: 0; }
+.marca { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.marca .logo { height: 46px; width: auto; display: block; }
+.marca span { font-size: 12px; font-weight: 500; color: var(--suave); letter-spacing: .4px; text-transform: uppercase; }
 .estado-base { font-size: 13px; color: var(--suave); text-align: right; }
 
 main { padding: 16px; max-width: 720px; margin: 0 auto; }
