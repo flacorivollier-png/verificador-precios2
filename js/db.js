@@ -3,11 +3,12 @@
  *  - fichas:    descripción / características / miniatura (NO se tocan al importar)
  *  - fotos:     foto completa de cada ficha (separada para que las listas carguen rápido)
  *  - minis:     miniatura de cada foto, se lee sólo al mostrar una lista
+ *  - consultas: cuántas veces se consultó cada producto (para saber cuáles fotografiar)
  *  - meta:      datos varios (fecha de la última importación, etc.)
  */
 const DB = (() => {
   const NOMBRE = 'verificador-precios';
-  const VERSION = 2;
+  const VERSION = 3;
   let dbPromise = null;
 
   function abrir() {
@@ -20,6 +21,7 @@ const DB = (() => {
         if (!db.objectStoreNames.contains('fichas')) db.createObjectStore('fichas', { keyPath: 'codigo' });
         if (!db.objectStoreNames.contains('fotos')) db.createObjectStore('fotos', { keyPath: 'codigo' });
         if (!db.objectStoreNames.contains('minis')) db.createObjectStore('minis', { keyPath: 'codigo' });
+        if (!db.objectStoreNames.contains('consultas')) db.createObjectStore('consultas', { keyPath: 'codigo' });
         if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'clave' });
       };
       req.onsuccess = () => resolve(req.result);

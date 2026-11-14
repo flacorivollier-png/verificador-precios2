@@ -65,6 +65,18 @@
 
   <!-- ===================== FICHAS ===================== -->
   <section id="vista-fichas" class="vista">
+    <div class="segmentos">
+      <button type="button" id="segConFicha" class="segmento activo">⭐ Con ficha</button>
+      <button type="button" id="segParaFoto" class="segmento">📷 Para fotografiar</button>
+    </div>
+
+    <div id="panelParaFoto" class="oculto">
+      <h2>Más consultados sin foto</h2>
+      <p class="ayuda">Los productos que más escaneás o buscás y todavía no tienen foto. Empezá por los de arriba.</p>
+      <ul id="listaParaFoto" class="lista"></ul>
+    </div>
+
+    <div id="panelConFicha">
     <h2>Productos con ficha</h2>
     <p class="ayuda">Productos a los que les agregaste foto, descripción o características.</p>
     <div class="buscador">
@@ -75,6 +87,7 @@
       <label><input type="checkbox" id="soloSinFoto"> Sin foto</label>
     </div>
     <ul id="listaFichas" class="lista"></ul>
+    </div>
   </section>
 
   <!-- ===================== DATOS ===================== -->
@@ -87,6 +100,17 @@
       <input type="file" id="inputArchivo" accept=".csv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
     </label>
     <div id="progreso" class="progreso oculto"><div id="barra" class="barra"></div><span id="progresoTxt"></span></div>
+
+    <h2>Precios en efectivo y cuotas</h2>
+    <div class="info-box config-precios">
+      <label class="fila-config"><span>Descuento en efectivo</span>
+        <span><input id="cfgEfectivo" type="number" inputmode="decimal" min="0" max="90" step="0.5"> %</span></label>
+      <label class="fila-config"><span>Cuotas (opción 1)</span>
+        <span><input id="cfgCuotas1" type="number" inputmode="numeric" min="0" max="36" placeholder="–"> cuotas · recargo <input id="cfgRecargo1" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"> %</span></label>
+      <label class="fila-config"><span>Cuotas (opción 2)</span>
+        <span><input id="cfgCuotas2" type="number" inputmode="numeric" min="0" max="36" placeholder="–"> cuotas · recargo <input id="cfgRecargo2" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0"> %</span></label>
+      <p class="ayuda">Dejá las cuotas vacías si no querés mostrarlas. Con recargo 0 son “sin interés”.</p>
+    </div>
 
     <h2>Copia de seguridad de fichas</h2>
     <p class="ayuda">Las fotos y características quedan guardadas sólo en este teléfono. Hacé una copia de vez en cuando (se guarda en Archivos / iCloud Drive) para no perderlas o para pasarlas a otro equipo.</p>

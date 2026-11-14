@@ -414,3 +414,30 @@ input[type=checkbox] { accent-color: var(--verde); }
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ---------- precio en efectivo / cuotas ---------- */
+.precio-extra { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px 0 6px; }
+.efectivo {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  background: #e9dcc6; color: var(--precio);
+  padding: 6px 14px; border-radius: 999px; font-size: 15px; font-weight: 600;
+}
+.efectivo .pe { font-size: 26px; }
+.efectivo small { font-size: 12px; color: var(--suave); font-weight: 500; }
+.cuotas { font-size: 15px; color: var(--suave); }
+.cuotas b { color: var(--texto); font-weight: 600; }
+.lista .p { display: flex; flex-direction: column; align-items: flex-end; }
+.lista .p .efvo { font-size: 13px; color: var(--suave); font-family: inherit; }
+.acciones-tarjeta { display: flex; gap: 8px; margin-top: 14px; }
+.acciones-tarjeta .btn { margin: 0; }
+.btn-whatsapp { background: #4f7a52; }
+
+/* ---------- solapas de Fichas ---------- */
+.segmentos { display: flex; background: var(--borde); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 6px; }
+.segmento { flex: 1; border: none; background: none; padding: 10px; border-radius: 9px; font-size: 15px; font-weight: 600; color: var(--suave); font-family: inherit; }
+.segmento.activo { background: var(--panel); color: var(--texto); box-shadow: 0 1px 3px rgba(90, 64, 40, .15); }
+.lista .veces { font-size: 13px; color: var(--azul); font-weight: 600; }
+
+/* ---------- configuración de precios ---------- */
+.fila-config { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; flex-wrap: wrap; }
+.fila-config input { width: 64px; font-size: 16px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--borde); background: var(--fondo); color: var(--texto); text-align: center; }

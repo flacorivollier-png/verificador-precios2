@@ -55,6 +55,99 @@ function precioElegante(p) {
     dec !== '00' ? h('span', { class: 'pe-dec' }, dec) : null);
 }
 
+/* ---------- efectivo y cuotas ---------- */
+let configPrecios = { efectivo: 10, cuotas: [] };   // cuotas: [{ n, recargo }]
+
+const redondear2 = v => Math.round(v * 100) / 100;
+const precioEfectivo = v => redondear2(v * (1 - (configPrecios.efectivo || 0) / 100));
+const valorCuota = (v, c) => redondear2(v * (1 + (c.recargo || 0) / 100) / c.n);
+
+async function cargarConfigPrecios() {
+  const c = await DB.getMeta('precios');
+  if (c) configPrecios = { efectivo: c.efectivo ?? 10, cuotas: c.cuotas || [] };
+  $('#cfgEfectivo').value = configPrecios.efectivo;
+  [1, 2].forEach(i => {
+    const q = configPrecios.cuotas[i - 1];
+    $('#cfgCuotas' + i).value = q ? q.n : '';
+    $('#cfgRecargo' + i).value = q && q.recargo ? q.recargo : '';
+  });
+}
+
+async function guardarConfigPrecios() {
+  const num = id => { const v = parseFloat(String($(id).value).replace(',', '.')); return isFinite(v) ? v : 0; };
+  const cuotas = [1, 2]
+    .map(i => ({ n: Math.round(num('#cfgCuotas' + i)), recargo: num('#cfgRecargo' + i) }))
+    .filter(q => q.n >= 2);
+  configPrecios = { efectivo: Math.min(90, Math.max(0, num('#cfgEfectivo'))), cuotas };
+  await DB.setMeta('precios', configPrecios);
+  toast('Guardado ✓', 1200);
+}
+
+/** Bloque con precio en efectivo y cuotas, debajo del precio principal. */
+function preciosExtra(p) {
+  if (!p || p.precio == null) return null;
+  const box = h('div', { class: 'precio-extra' });
+  if (configPrecios.efectivo > 0) {
+    box.append(h('div', { class: 'efectivo' }, '💵 Efectivo',
+      precioElegante({ precio: precioEfectivo(p.precio) }),
+      h('small', null, `-${String(configPrecios.efectivo).replace('.', ',')}%`)));
+  }
+  configPrecios.cuotas.forEach(c => {
+    box.append(h('div', { class: 'cuotas' }, '💳 ', h('b', null, `${c.n} cuotas`), ' de ',
+      h('b', null, formatearPrecio({ precio: valorCuota(p.precio, c) })),
+      c.recargo ? ` (total ${formatearPrecio({ precio: redondear2(p.precio * (1 + c.recargo / 100)) })})` : ' sin interés'));
+  });
+  return box.childNodes.length ? box : null;
+}
+
+/* ---------- compartir por WhatsApp ---------- */
+function textoCompartir(p, f) {
+  const lineas = [`*${p.nombre || 'Producto'}*`];
+  if (p.presentacion) lineas.push(p.presentacion);
+  lineas.push('');
+  if (p.precio != null) {
+    lineas.push(`💲 Precio: ${formatearPrecio(p)}`);
+    if (configPrecios.efectivo > 0) lineas.push(`💵 Efectivo: ${formatearPrecio({ precio: precioEfectivo(p.precio) })} (${String(configPrecios.efectivo).replace('.', ',')}% off)`);
+    configPrecios.cuotas.forEach(c => lineas.push(`💳 ${c.n} cuotas de ${formatearPrecio({ precio: valorCuota(p.precio, c) })}${c.recargo ? '' : ' sin interés'}`));
+  } else if (p.precioTexto) lineas.push(`💲 Precio: ${p.precioTexto}`);
+  if (f && f.descripcion) lineas.push('', f.descripcion);
+  if (f && f.caracteristicas) {
+    lineas.push('');
+    f.caracteristicas.split('\n').map(l => l.trim()).filter(Boolean).forEach(l => lineas.push('• ' + l));
+  }
+  lineas.push('', '_Guille Deco Bazar · tu casa más linda_');
+  return lineas.join('\n');
+}
+
+/** Se llama directo desde el toque del botón (iOS exige que compartir sea inmediato). */
+function compartir(p, archivoFoto) {
+  const texto = textoCompartir(p, fichas.get(p.codigo));
+  const alWhatsApp = () => { location.href = 'https://wa.me/?text=' + encodeURIComponent(texto); };
+  const errorCompartir = e => { if (!e || e.name !== 'AbortError') alWhatsApp(); };
+  try {
+    if (archivoFoto && navigator.canShare && navigator.canShare({ files: [archivoFoto] })) {
+      // algunas apps no toman el texto junto con la foto: lo dejamos copiado para pegarlo
+      if (navigator.clipboard) navigator.clipboard.writeText(texto).then(() => toast('Texto copiado: si no aparece, pegalo como mensaje', 3500)).catch(() => {});
+      navigator.share({ files: [archivoFoto], text: texto }).catch(errorCompartir);
+      return;
+    }
+    if (navigator.share) { navigator.share({ text: texto }).catch(errorCompartir); return; }
+  } catch (e) { /* sigue abajo */ }
+  alWhatsApp();
+}
+
+/* ---------- consultas (para saber qué fotografiar) ---------- */
+let ultimaConsulta = { codigo: null, t: 0 };
+async function registrarConsulta(codigo) {
+  // no contar dos veces el mismo producto dentro del mismo minuto
+  if (ultimaConsulta.codigo === codigo && Date.now() - ultimaConsulta.t < 60000) return;
+  ultimaConsulta = { codigo, t: Date.now() };
+  try {
+    const c = await DB.obtener('consultas', codigo);
+    await DB.guardar('consultas', { codigo, n: (c ? c.n : 0) + 1, ultima: new Date().toISOString() });
+  } catch (e) { /* no es crítico */ }
+}
+
 function formatearFecha(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -90,6 +183,7 @@ function indexarProductos(lista) {
 
 async function cargarTodo() {
   $('#estadoBase').textContent = 'Cargando…';
+  await cargarConfigPrecios();
   const [lista, listaFichas] = await Promise.all([DB.todos('productos'), DB.todos('fichas')]);
   indexarProductos(lista);
   fichas = new Map(listaFichas.map(f => [f.codigo, f]));
@@ -146,7 +240,7 @@ function buscar(q) {
   const esCodigo = /^\d{3,}$/.test(q);
   if (esCodigo) {
     const p = buscarCodigo(q);
-    if (p) { mostrarProducto(p); return; }
+    if (p) { registrarConsulta(p.codigo); mostrarProducto(p); return; }
   }
   // búsqueda por nombre (o por parte del código)
   const terminos = Importar.normalizar(q).split(/\s+/).filter(Boolean);
@@ -155,7 +249,7 @@ function buscar(q) {
     const t = indiceNombres[i];
     if (terminos.every(x => t.includes(x))) encontrados.push(productos[i]);
   }
-  if (encontrados.length === 1) { mostrarProducto(encontrados[0]); return; }
+  if (encontrados.length === 1) { registrarConsulta(encontrados[0].codigo); mostrarProducto(encontrados[0]); return; }
   if (!encontrados.length) { mostrarNoEncontrado(q); return; }
   mostrarLista($('#listaResultados'), encontrados, encontrados.length >= 60 ? 'Mostrando los primeros 60. Escribí más palabras para afinar.' : null);
 }
@@ -189,7 +283,8 @@ async function mostrarProducto(p) {
     p.presentacion ? h('div', { class: 'presentacion' }, p.presentacion) : null,
     h('div', { class: 'precio-box' },
       h('div', { class: 'precio-etiqueta' }, 'PRECIO'),
-      h('div', { class: 'precio' }, precioElegante(p))),
+      h('div', { class: 'precio' }, precioElegante(p)),
+      preciosExtra(p)),
     h('div', { class: 'codigo' }, 'Código ', p.codigo)
   );
   if (f && f.descripcion) tarjeta.append(h('div', { class: 'descripcion' }, f.descripcion));
@@ -207,13 +302,23 @@ async function mostrarProducto(p) {
     tarjeta.append(h('div', { class: 'otros' },
       Object.entries(p.otros).map(([k, v]) => h('div', null, k + ': ' + v))));
   }
-  tarjeta.append(h('button', { class: 'btn btn-gris', type: 'button', onclick: () => abrirFicha(p.codigo) },
-    f ? '✏️ Editar ficha' : '➕ Agregar foto / características'));
+  let archivoFoto = null;
+  tarjeta.append(h('div', { class: 'acciones-tarjeta' },
+    h('button', { class: 'btn btn-whatsapp', type: 'button', onclick: () => compartir(p, archivoFoto) }, '💬 Compartir'),
+    h('button', { class: 'btn btn-gris', type: 'button', onclick: () => abrirFicha(p.codigo) },
+      f ? '✏️ Editar' : '➕ Foto / datos')));
   $('#resultado').append(tarjeta);
 
   if (f && f.tieneFoto) {
-    const url = await urlFoto(p.codigo);
-    if (url) { img.src = url; img.classList.remove('oculto'); }
+    const reg = await DB.obtener('fotos', p.codigo);
+    if (reg) {
+      const blob = new Blob([reg.datos], { type: reg.tipo || 'image/jpeg' });
+      archivoFoto = new File([blob], 'producto.jpg', { type: 'image/jpeg' });
+      const url = URL.createObjectURL(blob);
+      urlsActivas.push(url);
+      img.src = url;
+      img.classList.remove('oculto');
+    }
   }
 }
 
@@ -228,12 +333,14 @@ function mostrarLista(ul, lista, nota, agregar) {
       mini = h('img', { class: 'mini', alt: '' });
       DB.obtener('minis', codigo).then(m => { if (m) mini.src = m.url; }).catch(() => {});
     } else mini = h('div', { class: 'mini vacia' }, '📦');
-    ul.append(h('li', { onclick: () => { irA('consultar'); mostrarProducto(p.codigo ? p : { codigo, nombre: '(no está en la lista actual)', precio: null }); window.scrollTo(0, 0); } },
+    ul.append(h('li', { onclick: () => { if (p.codigo) registrarConsulta(p.codigo); irA('consultar'); mostrarProducto(p.codigo ? p : { codigo, nombre: '(no está en la lista actual)', precio: null }); window.scrollTo(0, 0); } },
       mini,
       h('div', { class: 'txt' },
         h('div', { class: 'n' }, (f && f.destacado ? '★ ' : ''), p.nombre || '(no está en la lista actual)'),
         h('div', { class: 'c' }, codigo, p.presentacion ? ' · ' + p.presentacion : '')),
-      h('div', { class: 'p' }, p.codigo ? precioElegante(p) : '')
+      h('div', { class: 'p' }, p.codigo ? precioElegante(p) : '',
+        p.codigo && p.precio != null && configPrecios.efectivo > 0
+          ? h('span', { class: 'efvo' }, 'Efvo ' + formatearPrecio({ precio: precioEfectivo(p.precio) })) : null)
     ));
   });
   if (nota) ul.append(h('div', { class: 'lista-msg' }, nota));
@@ -299,7 +406,7 @@ function alLeer(texto) {
   beep();
   $('#inputBuscar').value = texto;
   const p = buscarCodigo(texto);
-  if (p) mostrarProducto(p);
+  if (p) { registrarConsulta(p.codigo); mostrarProducto(p); }
   else { limpiarResultados(); mostrarNoEncontrado(texto); }
   $('#btnSiguiente').classList.remove('oculto');
   // llevar la tarjeta (con el precio) a la vista, debajo de la cámara
@@ -333,7 +440,41 @@ function irA(vista) {
   document.querySelectorAll('.vista').forEach(v => v.classList.toggle('activa', v.id === 'vista-' + vista));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activa', t.dataset.vista === vista));
   if (vista !== 'consultar') cerrarScanner();
-  if (vista === 'fichas') renderFichas();
+  if (vista === 'fichas') mostrarSolapaFichas($('#segParaFoto').classList.contains('activo') ? 'foto' : 'ficha');
+}
+
+function mostrarSolapaFichas(cual) {
+  const foto = cual === 'foto';
+  $('#segParaFoto').classList.toggle('activo', foto);
+  $('#segConFicha').classList.toggle('activo', !foto);
+  $('#panelParaFoto').classList.toggle('oculto', !foto);
+  $('#panelConFicha').classList.toggle('oculto', foto);
+  if (foto) renderParaFoto(); else renderFichas();
+}
+
+async function renderParaFoto() {
+  const ul = $('#listaParaFoto');
+  ul.innerHTML = '';
+  const consultas = await DB.todos('consultas');
+  const lista = consultas
+    .filter(c => porCodigo.has(c.codigo) && !(fichas.get(c.codigo) || {}).tieneFoto)
+    .sort((a, b) => b.n - a.n || String(b.ultima).localeCompare(String(a.ultima)))
+    .slice(0, 50);
+  if (!lista.length) {
+    ul.append(h('div', { class: 'lista-msg' }, consultas.length
+      ? '¡Todos los productos consultados ya tienen foto! 🎉'
+      : 'Todavía no hay consultas. A medida que escanees o busques productos, acá vas a ver los más consultados que no tienen foto.'));
+    return;
+  }
+  lista.forEach(c => {
+    const p = porCodigo.get(c.codigo);
+    ul.append(h('li', { onclick: () => { irA('consultar'); mostrarProducto(p); window.scrollTo(0, 0); } },
+      h('div', { class: 'mini vacia' }, '📷'),
+      h('div', { class: 'txt' },
+        h('div', { class: 'n' }, p.nombre),
+        h('div', { class: 'veces' }, c.n === 1 ? 'Consultado 1 vez' : `Consultado ${c.n} veces`)),
+      h('div', { class: 'p' }, precioElegante(p))));
+  });
 }
 
 const POR_PAGINA = 50;
@@ -740,6 +881,10 @@ function conectarEventos() {
   $('#btnExportar').addEventListener('click', () => exportarFichas(false));
   $('#btnExportarTodo').addEventListener('click', () => exportarFichas(true));
   $('#soloSinFoto').addEventListener('change', renderFichas);
+  $('#segConFicha').addEventListener('click', () => mostrarSolapaFichas('ficha'));
+  $('#segParaFoto').addEventListener('click', () => mostrarSolapaFichas('foto'));
+  ['#cfgEfectivo', '#cfgCuotas1', '#cfgRecargo1', '#cfgCuotas2', '#cfgRecargo2']
+    .forEach(id => $(id).addEventListener('change', guardarConfigPrecios));
   let filtroTimer;
   $('#filtroFichas').addEventListener('input', () => { clearTimeout(filtroTimer); filtroTimer = setTimeout(renderFichas, 250); });
   $('#inputBackup').addEventListener('change', importarFichas);
