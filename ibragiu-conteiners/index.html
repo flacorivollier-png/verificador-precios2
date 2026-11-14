@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ibragiu Conteiners</title>
-<meta name="theme-color" content="#1e293b">
+<meta name="theme-color" content="#4a3322">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
@@ -14,26 +14,29 @@
 <script src="lib/JsBarcode.all.min.js"></script>
 <style>
 :root{
-  --bg:#0f172a; --panel:#1e293b; --card:#ffffff; --text:#e2e8f0; --muted:#94a3b8;
-  --accent:#22c55e; --warn:#f59e0b; --danger:#ef4444; --border:#334155;
+  /* Colores de la caja: cartón arena + marrón */
+  --bg:#efe3cf; --header:#4a3322; --panel:#f7efe2; --card:#fffaf2; --text:#3b2a1c; --muted:#7d6650;
+  --accent:#8b5e34; --sand:#d4b48a; --ok:#5b7f2a; --warn:#d08a1c; --danger:#b4412e; --border:#d9c4a3;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
 header{
-  position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:10;background:var(--header);border-bottom:4px solid var(--sand);
+  box-shadow:0 2px 10px rgba(59,42,28,.25);
   padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center
 }
 header h1{margin:0 12px 0 0;font-size:22px;letter-spacing:.5px}
 header h1 img{height:52px;display:block}
 input,select,textarea{
   font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--border);
-  background:#0b1222;color:var(--text);width:100%
+  background:var(--card);color:var(--text);width:100%
 }
 button{
   font-size:15px;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;
   background:var(--accent);color:#fff;font-weight:bold;white-space:nowrap
 }
-button.sec{background:#475569}
+button.sec{background:#a07a52}
+header button.sec{background:#6b4b31}
 button.danger{background:var(--danger)}
 button.warn{background:var(--warn)}
 .search{flex:1;min-width:180px}
@@ -51,28 +54,28 @@ main{padding:0 16px 40px}
 .categoria h2 small{color:var(--muted);font-weight:normal;font-size:14px}
 .grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
 .item{
-  background:var(--card);color:#0f172a;border-radius:12px;overflow:hidden;cursor:pointer;
+  background:var(--card);color:var(--text);border-radius:12px;box-shadow:0 2px 8px rgba(74,51,34,.12);overflow:hidden;cursor:pointer;
   display:flex;flex-direction:column;border:3px solid transparent;transition:transform .1s
 }
 .item:hover{transform:translateY(-2px)}
 .item.bajo{border-color:var(--warn)}
 .item.sin{border-color:var(--danger)}
-.foto{aspect-ratio:1/1;background:#f1f5f9;display:flex;align-items:center;justify-content:center}
+.foto{aspect-ratio:1/1;background:#fff;display:flex;align-items:center;justify-content:center}
 .foto img{width:100%;height:100%;object-fit:contain}
-.foto .nofoto{color:#94a3b8;font-size:13px}
+.foto .nofoto{color:var(--muted);font-size:13px}
 .info{padding:8px;text-align:center}
 .info .nombre{font-size:13px;font-weight:bold;min-height:16px;margin-bottom:4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .info svg{width:100%;height:46px}
 .info .cod{font-family:monospace;font-size:13px}
-.info .interno{font-size:12px;color:#475569}
-.stock{font-size:12px;padding:6px;background:#e2e8f0;text-align:center;font-weight:bold}
-.item.bajo .stock{background:#fde68a}
-.item.sin .stock{background:#fecaca}
+.info .interno{font-size:12px;color:var(--muted)}
+.stock{font-size:12px;padding:6px;background:#eadbc2;text-align:center;font-weight:bold}
+.item.bajo .stock{background:#f6d9a0}
+.item.sin .stock{background:#f1c2b6}
 .vacio{text-align:center;color:var(--muted);padding:60px 10px}
 
 /* Modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-start;
+.modal{position:fixed;inset:0;background:rgba(59,42,28,.55);display:none;align-items:flex-start;
   justify-content:center;z-index:50;overflow:auto;padding:20px 10px}
 .modal.open{display:flex}
 .caja{background:var(--panel);border-radius:14px;padding:18px;width:100%;max-width:560px}
@@ -80,7 +83,7 @@ main{padding:0 16px 40px}
 .fila{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .fila.una{grid-template-columns:1fr}
 label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
-.preview{width:140px;height:140px;background:#f1f5f9;border-radius:10px;display:flex;
+.preview{width:140px;height:140px;background:#fff;border:1px solid var(--border);border-radius:10px;display:flex;
   align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px}
 .preview img{width:100%;height:100%;object-fit:contain}
 .acciones{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}
@@ -91,7 +94,7 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 .historial{max-height:160px;overflow:auto;font-size:13px;color:var(--muted);margin-top:8px;
   border-top:1px solid var(--border);padding-top:6px}
 .historial div{padding:3px 0;border-bottom:1px dashed var(--border)}
-.ent{color:var(--accent)} .sal{color:var(--danger)}
+.ent{color:var(--ok)} .sal{color:var(--danger)}
 .stockGrande{font-size:34px;font-weight:bold;color:var(--accent)}
 
 @media (max-width:600px){
