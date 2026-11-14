@@ -24,6 +24,25 @@ Pensada para **50.000+ productos y hasta ~5.000 fotos**. Las fotos se achican a 
 Las miniaturas se leen sólo cuando se muestran y la lista de fichas se pagina de a 50,
 así que la app abre igual de rápido con muchas fotos. En **⚙️ Datos** se ve el espacio usado.
 
+## Compartir la lista con otros usuarios (nube con Supabase)
+Con la nube activada, **vos sos el admin**: cargás la lista y las fichas, y los usuarios
+que apruebes las reciben solas en sus teléfonos (sólo consultan, no pueden cambiar nada).
+
+1. Crear una cuenta gratis en [supabase.com](https://supabase.com) y un proyecto nuevo (región São Paulo).
+2. **SQL Editor → New query**: pegar todo el archivo [`supabase/esquema.sql`](supabase/esquema.sql) y tocar **Run**.
+3. **Authentication → Sign In / Providers → Email**: desactivar **Confirm email**
+   (la aprobación la hacés vos desde la app).
+4. **Authentication → URL Configuration → Site URL**: poner la dirección de la app
+   (para los mails de "olvidé mi contraseña").
+5. **Project Settings → API**: copiar la *Project URL* y la clave *anon public* (o *publishable*)
+   en [`js/config.js`](js/config.js). **Nunca** usar la clave *service_role*.
+6. Abrir la app y **registrarte primero vos**: la primera cuenta queda como admin.
+7. Si ya tenías datos en el teléfono: **⚙️ Datos → Subir a la nube lo que hay en este teléfono**.
+
+Los usuarios abren el mismo link, tocan *Crear una cuenta* y vos los aprobás en **⚙️ Datos → Usuarios**.
+Todo queda guardado también en cada teléfono, así que la app anda sin internet;
+al volver la conexión se sincroniza sola (o con *Sincronizar ahora*).
+
 ## Publicarla (gratis, con GitHub Pages)
 La cámara del iPhone sólo funciona en páginas `https://`. GitHub Pages lo da gratis:
 1. En GitHub: **Settings → Pages**.
@@ -53,5 +72,6 @@ Si los códigos se ven como `7,79E+12` en Excel, formateá esa columna como *Tex
 ## Archivos
 - `index.html`, `css/`, `js/` — la app
 - `vendor/` — librerías de lectura de códigos (html5-qrcode) y de Excel (SheetJS)
+- `js/nube.js`, `js/config.js`, `supabase/esquema.sql` — sincronización con Supabase
 - `sw.js`, `manifest.webmanifest`, `icons/` — instalación y uso sin internet
 - `app.py` — versión anterior en Streamlit (no se usa)

@@ -65,8 +65,17 @@ function liberarURLs() {
   urlsActivas = [];
 }
 
+/** Foto guardada en el teléfono; en modo nube la baja si todavía no está. */
+async function obtenerFotoReg(codigo) {
+  const f = fichas.get(codigo);
+  if (Nube.activa && f && f.foto_ruta) return Nube.obtenerFoto(f);
+  return DB.obtener('fotos', codigo);
+}
+
+const puedeEditar = () => !Nube.activa || Nube.esAdmin();
+
 async function urlFoto(codigo) {
-  const f = await DB.obtener('fotos', codigo);
+  const f = await obtenerFotoReg(codigo);
   if (!f) return null;
   const url = URL.createObjectURL(new Blob([f.datos], { type: f.tipo || 'image/jpeg' }));
   urlsActivas.push(url);
@@ -207,7 +216,7 @@ async function mostrarProducto(p) {
     tarjeta.append(h('div', { class: 'otros' },
       Object.entries(p.otros).map(([k, v]) => h('div', null, k + ': ' + v))));
   }
-  tarjeta.append(h('button', { class: 'btn btn-gris', type: 'button', onclick: () => abrirFicha(p.codigo) },
+  if (puedeEditar()) tarjeta.append(h('button', { class: 'btn btn-gris', type: 'button', onclick: () => abrirFicha(p.codigo) },
     f ? '✏️ Editar ficha' : '➕ Agregar foto / características'));
   $('#resultado').append(tarjeta);
 
@@ -435,7 +444,16 @@ async function guardarLista(filas, mapa, encabezado, nombreArchivo) {
     await DB.setMeta('columnas', { encabezado, mapa });
     indexarProductos(lista);
     await actualizarInfo();
-    let msg = `✅ ${lista.length.toLocaleString('es-AR')} productos cargados`;
+    if (Nube.activa) {
+      barra.style.width = '100%';
+      try {
+        await Nube.subirLista(lista, nombreArchivo, t => { txt.textContent = t; });
+      } catch (err) {
+        toast('Se guardó en este teléfono pero NO se pudo subir a la nube: ' + err.message + '. Probá de nuevo con internet.', 8000);
+        return;
+      }
+    }
+    let msg = `✅ ${lista.length.toLocaleString('es-AR')} productos cargados` + (Nube.activa ? ' y enviados a todos' : '');
     if (sinCodigo) msg += ` · ${sinCodigo} filas sin código ignoradas`;
     if (repetidos) msg += ` · ${repetidos} códigos repetidos`;
     toast(msg, 5000);
@@ -510,7 +528,7 @@ async function abrirFicha(codigo) {
   $('#btnBorrarFicha').classList.toggle('oculto', !fichas.has(codigo));
   mostrarFotoDialogo(null);
   if (f.tieneFoto) {
-    const reg = await DB.obtener('fotos', codigo);
+    const reg = await obtenerFotoReg(codigo);
     if (reg) mostrarFotoDialogo(URL.createObjectURL(new Blob([reg.datos], { type: reg.tipo })));
   }
   const dlg = $('#dlgFicha');
@@ -544,7 +562,29 @@ async function guardarFicha() {
     actualizado: new Date().toISOString(),
   };
   try {
-    if (fotoNueva) {
+    if (Nube.activa) {
+      toast('Guardando en la nube…', 10000);
+      const vacia = !ficha.descripcion && !ficha.caracteristicas && !ficha.destacado && !ficha.tieneFoto;
+      if (vacia) {
+        await Nube.borrarFicha(codigo, anterior);
+        await Promise.all([DB.borrar('fotos', codigo), DB.borrar('minis', codigo), DB.borrar('fichas', codigo)]);
+        fichas.delete(codigo);
+      } else {
+        const local = await Nube.guardarFicha(ficha, fotoNueva, quitarFoto, anterior);
+        if (fotoNueva) {
+          await DB.guardarVarios({
+            fotos: [{ codigo, tipo: 'image/jpeg', datos: await fotoNueva.blob.arrayBuffer(), ruta: local.foto_ruta }],
+            minis: [{ codigo, url: fotoNueva.mini }],
+          });
+        } else if (quitarFoto) {
+          await DB.borrar('fotos', codigo);
+          await DB.borrar('minis', codigo);
+        }
+        await DB.guardar('fichas', local);
+        fichas.set(codigo, local);
+      }
+      toast('✅ Ficha guardada para todos');
+    } else if (fotoNueva) {
       await DB.guardarVarios({
         fotos: [{ codigo, tipo: 'image/jpeg', datos: await fotoNueva.blob.arrayBuffer() }],
         minis: [{ codigo, url: fotoNueva.mini }],
@@ -553,15 +593,17 @@ async function guardarFicha() {
       await DB.borrar('fotos', codigo);
       await DB.borrar('minis', codigo);
     }
-    const vacia = !ficha.descripcion && !ficha.caracteristicas && !ficha.destacado && !ficha.tieneFoto;
-    if (vacia) {
-      await DB.borrar('fichas', codigo);
-      fichas.delete(codigo);
-    } else {
-      await DB.guardar('fichas', ficha);
-      fichas.set(codigo, ficha);
+    if (!Nube.activa) {
+      const vacia = !ficha.descripcion && !ficha.caracteristicas && !ficha.destacado && !ficha.tieneFoto;
+      if (vacia) {
+        await DB.borrar('fichas', codigo);
+        fichas.delete(codigo);
+      } else {
+        await DB.guardar('fichas', ficha);
+        fichas.set(codigo, ficha);
+      }
+      toast('Ficha guardada');
     }
-    toast('Ficha guardada');
   } catch (err) {
     toast('Error al guardar: ' + err.message, 5000);
   }
@@ -571,6 +613,10 @@ async function guardarFicha() {
 async function borrarFicha() {
   if (!confirm('¿Borrar la foto y las características de este producto?')) return;
   const codigo = fichaActual;
+  if (Nube.activa) {
+    try { await Nube.borrarFicha(codigo, fichas.get(codigo)); }
+    catch (err) { toast('No se pudo borrar: ' + err.message, 5000); return; }
+  }
   await DB.borrar('fotos', codigo);
   await DB.borrar('minis', codigo);
   await DB.borrar('fichas', codigo);
@@ -633,7 +679,7 @@ async function exportarFichas(completa) {
       for (const f of partes[k]) {
         const item = { ...f };
         if (f.tieneFoto) {
-          const [reg, mini] = await Promise.all([DB.obtener('fotos', f.codigo), DB.obtener('minis', f.codigo)]);
+          const [reg, mini] = await Promise.all([obtenerFotoReg(f.codigo), DB.obtener('minis', f.codigo)]);
           if (reg) item.foto = await blobADataURL(new Blob([reg.datos], { type: reg.tipo }));
           if (mini) item.mini = mini.url;
         }
@@ -716,6 +762,103 @@ async function importarFichas(e) {
   }
 }
 
+/* ---------- nube: sincronización, usuarios, migración ---------- */
+async function sincronizarAhora(manual, recargar) {
+  if (!Nube.activa) return;
+  const estado = $('#estadoSync');
+  try {
+    const c = await Nube.sincronizar(t => { $('#estadoBase').textContent = t; estado.textContent = t; });
+    if (c.lista || c.fichas || recargar) {
+      await cargarTodo();
+      if ($('#vista-fichas').classList.contains('activa')) renderFichas();
+    } else await actualizarInfo();
+    if (c.lista) toast('✅ Lista de precios actualizada');
+    else if (manual) toast('Todo al día ✓');
+  } catch (err) {
+    await actualizarInfo();
+    if (manual || !productos.length) toast('No se pudo sincronizar: ' + err.message, 5000);
+  }
+  mostrarEstadoSync();
+}
+
+async function mostrarEstadoSync() {
+  const ultima = await DB.getMeta('ultimaSync');
+  $('#estadoSync').textContent = ultima
+    ? 'Última sincronización: ' + formatearFecha(ultima)
+    : 'Todavía no se sincronizó. Necesitás internet.';
+}
+
+async function renderUsuarios() {
+  const ul = $('#listaUsuarios');
+  ul.innerHTML = '';
+  let lista;
+  try { lista = await Nube.listarPerfiles(); }
+  catch (err) { ul.append(h('div', { class: 'lista-msg' }, 'No se pudo cargar: ' + err.message)); return; }
+  const yo = Nube.perfil() && Nube.perfil().id;
+  lista.forEach(u => {
+    const cambiar = async cambios => {
+      try { await Nube.actualizarPerfil(u.id, cambios); toast('Listo'); renderUsuarios(); }
+      catch (err) { toast(err.message, 5000); }
+    };
+    const estado = !u.aprobado ? h('span', { class: 'estado pendiente' }, 'Pendiente')
+      : u.rol === 'admin' ? h('span', { class: 'estado admin' }, 'Admin') : h('span', { class: 'estado' }, 'Usuario');
+    const acciones = h('div', { class: 'acciones' });
+    if (u.id !== yo) {
+      acciones.append(u.aprobado
+        ? h('button', { class: 'btn btn-gris', type: 'button', onclick: () => confirm(`¿Bloquear a ${u.nombre || u.email}?`) && cambiar({ aprobado: false }) }, '⛔ Bloquear')
+        : h('button', { class: 'btn btn-verde', type: 'button', onclick: () => cambiar({ aprobado: true }) }, '✓ Aprobar'));
+      if (u.aprobado) acciones.append(u.rol === 'admin'
+        ? h('button', { class: 'btn btn-gris', type: 'button', onclick: () => cambiar({ rol: 'usuario' }) }, 'Quitar admin')
+        : h('button', { class: 'btn btn-gris', type: 'button', onclick: () => confirm(`¿Hacer admin a ${u.nombre || u.email}? Va a poder cambiar la lista y las fichas.`) && cambiar({ rol: 'admin' }) }, 'Hacer admin'));
+    }
+    ul.append(h('li', null,
+      h('div', { class: 'txt' }, h('div', { class: 'n' }, u.nombre || '(sin nombre)', u.id === yo ? ' (vos)' : ''), h('div', { class: 'c' }, u.email)),
+      estado,
+      acciones.childNodes.length ? acciones : null));
+  });
+  if (!lista.length) ul.append(h('div', { class: 'lista-msg' }, 'Todavía no hay usuarios.'));
+}
+
+async function migrarFichasLocales() {
+  const todas = [...fichas.values()];
+  const subirLista = productos.length && !(await DB.getMeta('listaVersion'));
+  if (!todas.length && !subirLista) { toast('No hay datos para subir'); return; }
+  const que = [subirLista ? `la lista de precios (${productos.length.toLocaleString('es-AR')} productos)` : null,
+    todas.length ? `${todas.length} fichas` : null].filter(Boolean).join(' y ');
+  if (!confirm(`Se va a subir a la nube ${que}. ¿Continuar?`)) return;
+  if (subirLista) {
+    try {
+      const info = (await DB.getMeta('importacion')) || {};
+      await Nube.subirLista(productos, info.archivo || 'lista', t => toast(t, 10000));
+    } catch (err) { toast('No se pudo subir la lista: ' + err.message, 8000); return; }
+  }
+  let n = 0;
+  for (const f of todas) {
+    try {
+      let foto = null;
+      if (f.tieneFoto && !f.foto_ruta) {
+        const reg = await DB.obtener('fotos', f.codigo);
+        const mini = await DB.obtener('minis', f.codigo);
+        if (reg) foto = { blob: new Blob([reg.datos], { type: 'image/jpeg' }), mini: mini ? mini.url : null };
+      }
+      const local = await Nube.guardarFicha(f, foto, false, f);
+      if (foto) {
+        const reg = await DB.obtener('fotos', f.codigo);
+        await DB.guardar('fotos', { ...reg, ruta: local.foto_ruta });
+      }
+      await DB.guardar('fichas', local);
+      fichas.set(f.codigo, local);
+      n++;
+      if (n % 5 === 0) toast(`Subiendo fichas… ${n} de ${todas.length}`, 10000);
+    } catch (err) {
+      toast(`Se subieron ${n}. Error en ${f.codigo}: ${err.message}`, 8000);
+      return;
+    }
+  }
+  toast(`✅ Subido a la nube: ${que}`, 5000);
+  await actualizarInfo();
+}
+
 /* ---------- inicio ---------- */
 function conectarEventos() {
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => irA(t.dataset.vista)));
@@ -750,21 +893,46 @@ function conectarEventos() {
 async function iniciar() {
   $('#version').textContent = VERSION_APP;
   conectarEventos();
-  $('#btnCambiarClave').addEventListener('click', () => Acceso.cambiar());
-  $('#btnCerrarSesion').addEventListener('click', () => { if (confirm('¿Cerrar sesión?')) Acceso.cerrarSesion(); });
+  const Auth = Nube.activa ? Nube : Acceso;
+  document.body.classList.add(Nube.activa ? 'modo-nube' : 'modo-local');
+  if (!Nube.activa) document.body.classList.add('es-admin');
+  $('#btnCambiarClave').addEventListener('click', () => (Nube.activa ? Nube.cambiarClave() : Acceso.cambiar()));
+  $('#btnCerrarSesion').addEventListener('click', () => { if (confirm('¿Cerrar sesión?')) Auth.cerrarSesion(); });
+  $('#btnSincronizar').addEventListener('click', () => sincronizarAhora(true));
+  $('#btnUsuarios').addEventListener('click', renderUsuarios);
+  $('#btnMigrar').addEventListener('click', migrarFichasLocales);
   // la lista se carga mientras se ve la portada
   const carga = cargarTodo().catch(err => {
     $('#estadoBase').textContent = 'Error';
     toast('No se pudo abrir la base de datos: ' + err.message, 6000);
   });
-  await Acceso.iniciar();
-  const verUsuario = () => Acceso.usuarioActual().then(u => { $('#usuarioActual').textContent = u; });
+  await Auth.iniciar();
+  const verUsuario = Nube.activa
+    ? async () => {
+      const p = Nube.perfil();
+      $('#usuarioActual').textContent = p ? `${p.nombre || ''} (${p.email}) · ${p.rol === 'admin' ? 'admin' : 'usuario'}` : '';
+      if (Nube.esAdmin()) renderUsuarios();
+    }
+    : () => Acceso.usuarioActual().then(u => { $('#usuarioActual').textContent = u; });
   document.addEventListener('acceso-listo', verUsuario);
   verUsuario();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   await carga;
-  if (!productos.length) irA('datos');
+  if (Nube.activa) {
+    mostrarEstadoSync();
+    await sincronizarAhora(false, true);
+    // volver a sincronizar al volver a la app (si pasaron más de 3 minutos) o al recuperar internet
+    let ultimoIntento = Date.now();
+    const quizasSync = () => {
+      if (document.hidden || Date.now() - ultimoIntento < 3 * 60000) return;
+      ultimoIntento = Date.now();
+      sincronizarAhora(false);
+    };
+    document.addEventListener('visibilitychange', quizasSync);
+    window.addEventListener('online', () => { ultimoIntento = 0; quizasSync(); });
+  }
+  if (!productos.length && puedeEditar()) irA('datos');
 }
 
 iniciar();

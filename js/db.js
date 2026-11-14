@@ -113,5 +113,13 @@ const DB = (() => {
     return txFin(tx);
   }
 
-  return { abrir, borrarTodo, todos, obtener, guardar, borrar, reemplazarProductos, guardarVarios, getMeta, setMeta };
+  /** Vacía los almacenes indicados. */
+  async function vaciar(stores) {
+    const db = await abrir();
+    const tx = db.transaction(stores, 'readwrite');
+    stores.forEach(s => tx.objectStore(s).clear());
+    return txFin(tx);
+  }
+
+  return { abrir, borrarTodo, vaciar, todos, obtener, guardar, borrar, reemplazarProductos, guardarVarios, getMeta, setMeta };
 })();

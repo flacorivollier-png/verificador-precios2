@@ -34,6 +34,18 @@
       <button type="button" id="btnCancelarAcceso" class="acceso-link oculto">Cancelar</button>
       <button type="button" id="btnOlvide" class="acceso-link oculto">Olvidé mi contraseña</button>
     </form>
+    <form id="formNube" class="oculto" autocomplete="on">
+      <h2 id="nubeTitulo">Bienvenido</h2>
+      <p id="nubeAyuda" class="acceso-ayuda oculto"></p>
+      <input id="nubeNombre" type="text" placeholder="Tu nombre" autocomplete="name" class="oculto">
+      <input id="nubeEmail" type="email" placeholder="Email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+      <input id="nubeClave" type="password" placeholder="Contraseña" autocomplete="current-password">
+      <input id="nubeClave2" type="password" placeholder="Repetir contraseña" autocomplete="new-password" class="oculto">
+      <div id="nubeError" class="acceso-error" role="alert"></div>
+      <button id="btnNube" class="btn btn-tan">Entrar</button>
+      <button type="button" id="nubeAlt1" class="acceso-link oculto"></button>
+      <button type="button" id="nubeAlt2" class="acceso-link oculto"></button>
+    </form>
   </div>
 </div>
 
@@ -81,27 +93,49 @@
   <!-- ===================== DATOS ===================== -->
   <section id="vista-datos" class="vista">
     <h2>Lista de precios</h2>
-    <p class="ayuda">Subí tu archivo <b>Excel (.xlsx / .xls)</b> o <b>CSV</b>. Al actualizarlo, las fotos y características que cargaste <b>se conservan</b>.</p>
     <div id="infoBase" class="info-box">Todavía no cargaste ninguna lista.</div>
-    <label class="btn btn-verde btn-archivo">
-      📄 Cargar / actualizar lista
-      <input type="file" id="inputArchivo" accept=".csv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-    </label>
-    <div id="progreso" class="progreso oculto"><div id="barra" class="barra"></div><span id="progresoTxt"></span></div>
-
-    <h2>Copia de seguridad de fichas</h2>
-    <p class="ayuda">Las fotos y características quedan guardadas sólo en este teléfono. Hacé una copia de vez en cuando (se guarda en Archivos / iCloud Drive) para no perderlas o para pasarlas a otro equipo.</p>
-    <p class="ayuda"><b>Copia de lo nuevo</b>: sólo lo que agregaste o cambiaste desde la última copia (rápida, para hacer seguido). <b>Copia completa</b>: todo; si hay muchas fotos se divide en varios archivos.</p>
-    <div id="infoFichas" class="info-box"></div>
-    <div class="fila-botones">
-      <button id="btnExportar" class="btn btn-azul">⬇️ Copia de lo nuevo</button>
-      <button id="btnExportarTodo" class="btn btn-gris">⬇️ Copia completa</button>
+    <div class="solo-admin">
+      <p class="ayuda">Subí tu archivo <b>Excel (.xlsx / .xls)</b> o <b>CSV</b>. Al actualizarlo, las fotos y características que cargaste <b>se conservan</b>.<span class="solo-nube"> La lista nueva les llega sola a todos los usuarios.</span></p>
+      <label class="btn btn-verde btn-archivo">
+        📄 Cargar / actualizar lista
+        <input type="file" id="inputArchivo" accept=".csv,.txt,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      </label>
+      <div id="progreso" class="progreso oculto"><div id="barra" class="barra"></div><span id="progresoTxt"></span></div>
     </div>
-    <label class="btn btn-gris btn-archivo">
-      ⬆️ Restaurar copia (podés elegir varios archivos)
-      <input type="file" id="inputBackup" accept=".json,application/json" multiple>
-    </label>
-    <div id="progresoCopia" class="progreso oculto"><div id="barraCopia" class="barra"></div><span id="progresoCopiaTxt"></span></div>
+
+    <div class="solo-nube">
+      <h2>Sincronización</h2>
+      <div id="estadoSync" class="info-box">—</div>
+      <button id="btnSincronizar" class="btn btn-azul">🔄 Sincronizar ahora</button>
+    </div>
+
+    <div class="solo-admin solo-nube">
+      <h2>Usuarios</h2>
+      <p class="ayuda">Las personas se registran desde la app y quedan esperando tu aprobación. Los usuarios sólo consultan; los admin pueden cargar la lista y las fichas.</p>
+      <ul id="listaUsuarios" class="lista usuarios"></ul>
+      <button id="btnUsuarios" class="btn btn-gris">🔄 Actualizar lista de usuarios</button>
+    </div>
+
+    <div class="solo-admin">
+      <h2>Copia de seguridad de fichas</h2>
+      <p class="ayuda solo-local">Las fotos y características quedan guardadas sólo en este teléfono. Hacé una copia de vez en cuando (se guarda en Archivos / iCloud Drive) para no perderlas o para pasarlas a otro equipo.</p>
+      <p class="ayuda solo-nube">Las fichas ya quedan guardadas en la nube. Igual podés bajar una copia a tu iPhone si querés tener una extra.</p>
+      <p class="ayuda"><b>Copia de lo nuevo</b>: sólo lo que agregaste o cambiaste desde la última copia (rápida, para hacer seguido). <b>Copia completa</b>: todo; si hay muchas fotos se divide en varios archivos.</p>
+      <div id="infoFichas" class="info-box"></div>
+      <div class="fila-botones">
+        <button id="btnExportar" class="btn btn-azul">⬇️ Copia de lo nuevo</button>
+        <button id="btnExportarTodo" class="btn btn-gris">⬇️ Copia completa</button>
+      </div>
+      <label class="btn btn-gris btn-archivo solo-local">
+        ⬆️ Restaurar copia (podés elegir varios archivos)
+        <input type="file" id="inputBackup" accept=".json,application/json" multiple>
+      </label>
+      <div id="progresoCopia" class="progreso oculto"><div id="barraCopia" class="barra"></div><span id="progresoCopiaTxt"></span></div>
+      <div class="solo-nube">
+        <p class="ayuda">¿Tenías la lista o fichas cargadas en este teléfono antes de usar la nube? Subilas una vez para que las vean todos:</p>
+        <button id="btnMigrar" class="btn btn-gris">☁️ Subir a la nube lo que hay en este teléfono</button>
+      </div>
+    </div>
 
     <h2>Instalar en el iPhone</h2>
     <ol class="ayuda">
@@ -180,8 +214,11 @@
 <div id="toast" class="toast"></div>
 
 <script src="vendor/html5-qrcode.min.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="js/config.js"></script>
 <script src="js/db.js"></script>
 <script src="js/acceso.js"></script>
+<script src="js/nube.js"></script>
 <script src="js/importar.js"></script>
 <script src="js/app.js"></script>
 </body>
