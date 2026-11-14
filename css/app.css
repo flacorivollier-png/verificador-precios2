@@ -106,8 +106,33 @@ h2 { font-size: 20px; margin: 22px 0 8px; }
   overflow: hidden;
   margin-bottom: 10px;
 }
-#reader { width: 100%; }
-#reader video { width: 100% !important; height: auto !important; display: block; object-fit: cover; }
+/* visor de la cámara */
+.visor { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: #000; }
+.visor video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.guia {
+  position: absolute; left: 7%; right: 7%; top: 29%; bottom: 29%;
+  border: 2px solid rgba(255, 250, 241, .9); border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(20, 14, 10, .38);
+  transition: border-color .2s;
+}
+.laser {
+  position: absolute; left: 4%; right: 4%; top: 50%; height: 2px;
+  background: #e07a5f; box-shadow: 0 0 8px #e07a5f;
+  animation: laser 1.6s ease-in-out infinite alternate;
+}
+@keyframes laser { from { top: 18%; } to { top: 82%; } }
+.visor.leido .guia { border-color: #7fbf7f; }
+.visor.leido .laser { display: none; }
+.visor-ayuda {
+  position: absolute; left: 0; right: 0; bottom: 8px; text-align: center;
+  color: #fffaf1; font-size: 13px; text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+}
+.visor-controles { position: absolute; top: 8px; right: 8px; display: flex; gap: 8px; }
+.ctrl {
+  min-width: 44px; height: 44px; border-radius: 22px; border: none;
+  background: rgba(20, 14, 10, .55); color: #fffaf1; font-size: 16px; font-weight: 700; font-family: inherit;
+}
+.ctrl.activo { background: #d8b48f; color: #2b1f16; }
 .scanner-acciones { display: flex; gap: 8px; padding: 8px; }
 .scanner-acciones .btn { margin: 0; }
 
@@ -289,7 +314,6 @@ input[type=checkbox] { accent-color: var(--verde); }
 .tarjeta, .lista li, .info-box { box-shadow: 0 1px 3px rgba(90, 64, 40, .08); }
 .buscador input:focus, .mapeo select:focus, .campo textarea:focus { outline: 2px solid var(--azul); outline-offset: 0; }
 .scanner-acciones .btn-gris { background: #5a4636; color: var(--boton-txt); }
-#reader, #reader * { color: var(--boton-txt); }
 
 /* ===================== PORTADA / ACCESO ===================== */
 .portada {

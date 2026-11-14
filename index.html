@@ -45,7 +45,14 @@
   <!-- ===================== CONSULTAR ===================== -->
   <section id="vista-consultar" class="vista activa">
     <div id="scannerWrap" class="scanner-wrap oculto">
-      <div id="reader"></div>
+      <div id="visor" class="visor">
+        <div class="guia"><span class="laser"></span></div>
+        <div class="visor-ayuda">Centrá el código en el recuadro · a unos 15 cm</div>
+        <div class="visor-controles">
+          <button type="button" id="btnZoom" class="ctrl oculto">1×</button>
+          <button type="button" id="btnLinterna" class="ctrl oculto" aria-label="Linterna">🔦</button>
+        </div>
+      </div>
       <div class="scanner-acciones">
         <button id="btnSiguiente" class="btn btn-verde oculto">Escanear otro</button>
         <button id="btnCerrarScanner" class="btn btn-gris">Cerrar cámara</button>
@@ -197,10 +204,11 @@
 
 <div id="toast" class="toast"></div>
 
-<script src="vendor/html5-qrcode.min.js"></script>
+<script src="vendor/barcode-detector.js"></script>
 <script src="js/db.js"></script>
 <script src="js/acceso.js"></script>
 <script src="js/importar.js"></script>
+<script src="js/escaner.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

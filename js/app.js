@@ -332,7 +332,6 @@ function mostrarLista(ul, lista, nota, agregar) {
 }
 
 /* ---------- escáner ---------- */
-let scanner = null;
 let escaneando = false;
 let pausado = false;
 let audioCtx = null;
@@ -348,46 +347,52 @@ function beep() {
   if (navigator.vibrate) navigator.vibrate(60);
 }
 
+const ZOOMS = [1, 1.5, 2, 3];
+
+function mostrarZoom(z) {
+  $('#btnZoom').textContent = (Math.round(z * 10) / 10).toString().replace('.', ',') + '×';
+}
+
 async function iniciarScanner() {
   if (!productos.length) { toast('Primero cargá la lista de precios (pestaña Datos)'); }
   try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch (e) {}
   $('#scannerWrap').classList.remove('oculto');
   $('#btnEscanear').classList.add('oculto');
   $('#btnSiguiente').classList.add('oculto');
-  if (escaneando) return;
-  const F = Html5QrcodeSupportedFormats;
-  scanner = scanner || new Html5Qrcode('reader', {
-    verbose: false,
-    formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.ITF, F.QR_CODE],
-    experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-  });
+  $('#visor').classList.remove('leido');
+  if (escaneando) { pausado = false; Escaner.continuar(); return; }
   try {
-    await scanner.start(
-      { facingMode: 'environment' },
-      {
-        fps: 15,
-        qrbox: (w, hgt) => ({ width: Math.floor(w * 0.85), height: Math.floor(Math.min(hgt * 0.6, w * 0.45)) }),
-        aspectRatio: 1.333,
-        disableFlip: true,
-      },
-      alLeer,
-      () => {}
-    );
+    const cap = await Escaner.abrir($('#visor'), alLeer);
     escaneando = true;
     pausado = false;
+    $('#btnZoom').classList.toggle('oculto', !cap.zoom || cap.zoom.max < 1.5);
+    $('#btnLinterna').classList.toggle('oculto', !cap.linterna);
+    $('#btnLinterna').classList.remove('activo');
+    if (cap.zoom) mostrarZoom(Escaner.zoomActual());
   } catch (err) {
     cerrarScanner();
-    const msg = String(err && (err.message || err));
+    const msg = String(err && (err.name + ' ' + err.message || err));
     if (/NotAllowed|Permission/i.test(msg)) toast('Permití el acceso a la cámara: Ajustes › Safari › Cámara', 5000);
     else if (location.protocol !== 'https:' && location.hostname !== 'localhost') toast('La cámara sólo funciona con https://', 5000);
     else toast('No se pudo abrir la cámara: ' + msg, 5000);
   }
 }
 
+async function cambiarZoom() {
+  const actual = Escaner.zoomActual();
+  const sig = ZOOMS.find(z => z > actual + 0.05) || ZOOMS[0];
+  mostrarZoom(await Escaner.zoom(sig));
+}
+
+async function alternarLinterna() {
+  $('#btnLinterna').classList.toggle('activo', await Escaner.alternarLinterna());
+}
+
 function alLeer(texto) {
   if (pausado) return;
   pausado = true;
-  try { scanner.pause(true); } catch (e) {}
+  Escaner.pausar();
+  $('#visor').classList.add('leido');
   beep();
   $('#inputBuscar').value = texto;
   const p = buscarCodigo(texto);
@@ -404,16 +409,15 @@ function alLeer(texto) {
 function siguiente() {
   if (!escaneando) return iniciarScanner();
   $('#btnSiguiente').classList.add('oculto');
+  $('#visor').classList.remove('leido');
   limpiarResultados();
-  try { scanner.resume(); } catch (e) {}
   pausado = false;
+  Escaner.continuar();
   $('#scannerWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function cerrarScanner() {
-  if (scanner && escaneando) {
-    try { await scanner.stop(); } catch (e) {}
-  }
+  Escaner.cerrar();
   escaneando = false;
   pausado = false;
   $('#scannerWrap').classList.add('oculto');
@@ -848,6 +852,8 @@ function conectarEventos() {
   $('#btnEscanear').addEventListener('click', iniciarScanner);
   $('#btnSiguiente').addEventListener('click', siguiente);
   $('#btnCerrarScanner').addEventListener('click', cerrarScanner);
+  $('#btnZoom').addEventListener('click', cambiarZoom);
+  $('#btnLinterna').addEventListener('click', alternarLinterna);
   $('#formBuscar').addEventListener('submit', e => {
     e.preventDefault();
     $('#inputBuscar').blur();
@@ -891,6 +897,7 @@ async function iniciar() {
   const verUsuario = () => Acceso.usuarioActual().then(u => { $('#usuarioActual').textContent = u; });
   document.addEventListener('acceso-listo', verUsuario);
   verUsuario();
+  Escaner.precargar();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   await carga;
