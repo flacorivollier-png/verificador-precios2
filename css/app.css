@@ -298,8 +298,17 @@ input[type=checkbox] { accent-color: var(--verde); }
   z-index: 200;
   overflow: hidden;
   color: #f6eedf;
-  background: linear-gradient(to bottom, #1a1b1f 0%, #1a1b1f 45%, #6b3f24 80%, #4a2c19 100%);
+  background: #1c1714;
   transition: opacity .5s ease;
+}
+/* fondo: la misma foto, ampliada y desenfocada, cubre toda la pantalla (sin bordes ni cortes) */
+.portada::before {
+  content: '';
+  position: absolute;
+  inset: -60px;
+  background: url(../icons/portada.jpg) center 70% / cover no-repeat;
+  filter: blur(28px) brightness(.75) saturate(1.1);
+  transform: scale(1.15);
 }
 /* imagen completa del logo: ocupa todo el ancho */
 .portada-img {
@@ -309,6 +318,12 @@ input[type=checkbox] { accent-color: var(--verde); }
   background: url(../icons/portada.jpg) center top / 100% 100% no-repeat;
   transform-origin: top center;
   transition: transform .7s cubic-bezier(.2, .8, .2, 1);
+  z-index: 1;
+  /* bordes que se funden con el fondo */
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 98%), linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 98%), linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-composite: intersect;
 }
 /* con el formulario abierto, el logo sube para que no lo tape */
 .portada.con-form .portada-img { transform: translateY(-22.5%); }
@@ -317,15 +332,14 @@ input[type=checkbox] { accent-color: var(--verde); }
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(20, 14, 10, 0) 55%, rgba(20, 14, 10, .75) 100%);
+  z-index: 2;
+  background: linear-gradient(to bottom, rgba(20, 14, 10, 0) 55%, rgba(20, 14, 10, .7) 100%);
 }
 .portada.saliendo { opacity: 0; }
 /* pantallas chicas (iPhone SE / mini): logo un poco más chico y formulario compacto */
 @media (max-height: 760px) and (max-aspect-ratio: 9/14) {
   .portada.con-form .portada-img {
     transform: translateY(-14.6%) scale(.72);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
   }
   .portada-form { padding: 12px 14px 4px; }
   .portada-form h2 { font-size: 19px; margin-bottom: 6px; }
@@ -340,13 +354,12 @@ input[type=checkbox] { accent-color: var(--verde); }
 }
 /* pantallas anchas (iPad / compu): imagen entera centrada */
 @media (min-aspect-ratio: 9/14) {
-  .portada { background: radial-gradient(circle at center, #2a2320, #121214); }
   .portada-img { left: 50%; right: auto; height: 100%; transform: translateX(-50%); }
   .portada.con-form .portada-img { transform: translateX(-50%) translateY(-18%); }
 }
 .portada-form {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   left: 16px;
   right: 16px;
   bottom: calc(18px + env(safe-area-inset-bottom));
