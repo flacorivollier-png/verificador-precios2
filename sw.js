@@ -1,7 +1,7 @@
 /* Service worker: permite usar la app sin internet.
  * Estrategia "red primero": si hay conexión se baja la versión nueva,
  * si no, se usa la copia guardada. Cambiar CACHE al publicar cambios grandes. */
-const CACHE = 'verificador-v9';
+const CACHE = 'verificador-v10';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -36,7 +36,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-cache' })
       .then(res => {
         if (res.ok) {
           const copia = res.clone();

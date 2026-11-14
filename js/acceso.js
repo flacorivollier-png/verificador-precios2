@@ -133,7 +133,14 @@ const Acceso = (() => {
     location.reload();
   }
 
+  /** Color de la barra de arriba (hora / batería): oscura en la portada, arena en la app. */
+  function colorBarra(c) {
+    const m = document.querySelector('meta[name=theme-color]');
+    if (m) m.setAttribute('content', c);
+  }
+
   function entrar() {
+    colorBarra('#efe6d6');
     const p = $('#portada');
     p.classList.add('saliendo');
     setTimeout(() => { p.classList.add('oculto'); p.classList.remove('saliendo'); }, 500);
@@ -166,6 +173,7 @@ const Acceso = (() => {
 
   async function cambiar() {
     const c = await DB.getMeta('acceso');
+    colorBarra('#1c1714');
     $('#portada').classList.remove('oculto');
     prepararFormulario('cambiar', c ? c.usuario : '');
   }
