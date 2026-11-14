@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ibragiu Conteiners</title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<meta name="theme-color" content="#1e293b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<script src="lib/html5-qrcode.min.js"></script>
+<script src="lib/JsBarcode.all.min.js"></script>
 <style>
 :root{
   --bg:#0f172a; --panel:#1e293b; --card:#ffffff; --text:#e2e8f0; --muted:#94a3b8;
@@ -123,6 +129,7 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
     <button class="sec" onclick="escanearBusqueda()">📷 Escanear</button>
     <button class="sec" onclick="abrir('modalDatos')">⚙ Datos</button>
     <button class="sec" onclick="window.print()">🖨 Imprimir</button>
+    <button id="btnInstalar" style="display:none" onclick="instalarApp()">📲 Instalar app</button>
   </div>
 </header>
 
@@ -593,6 +600,23 @@ $("archivoCSV").addEventListener("change", e=>{
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click", e=>{
   if(e.target===m){ m.id==="modalScanner" ? detenerScanner() : cerrar(m.id); }
 }));
+
+/* ---------- App instalable (Android / tablet) ---------- */
+let eventoInstalar = null;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault(); eventoInstalar = e; $("btnInstalar").style.display = "";
+});
+window.addEventListener("appinstalled", ()=>{ $("btnInstalar").style.display = "none"; });
+async function instalarApp(){
+  if(!eventoInstalar) return;
+  eventoInstalar.prompt(); await eventoInstalar.userChoice;
+  eventoInstalar = null; $("btnInstalar").style.display = "none";
+}
+if("serviceWorker" in navigator && location.protocol !== "file:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+// Pide al navegador que no borre los datos guardados
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
 (async ()=>{
   db = await abrirDB();
