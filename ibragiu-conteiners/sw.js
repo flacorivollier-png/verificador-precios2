@@ -1,6 +1,6 @@
 // Guarda la app en el dispositivo para que funcione sin internet.
 // Cambiar VERSION cada vez que se modifique la app para que se actualice.
-const VERSION = "ibragiu-v5";
+const VERSION = "ibragiu-v6";
 const ARCHIVOS = [
   "./", "./index.html", "./manifest.json", "./logo.png",
   "./lib/JsBarcode.all.min.js", "./lib/html5-qrcode.min.js",
@@ -14,7 +14,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   e.waitUntil(
-    caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k))))
+    caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("ibragiu-") && k !== VERSION).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
