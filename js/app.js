@@ -750,6 +750,12 @@ function conectarEventos() {
 async function iniciar() {
   $('#version').textContent = VERSION_APP;
   conectarEventos();
+  $('#btnCambiarClave').addEventListener('click', () => Acceso.cambiar());
+  $('#btnCerrarSesion').addEventListener('click', () => { if (confirm('¿Cerrar sesión?')) Acceso.cerrarSesion(); });
+  await Acceso.iniciar();
+  const verUsuario = () => Acceso.usuarioActual().then(u => { $('#usuarioActual').textContent = u; });
+  document.addEventListener('acceso-listo', verUsuario);
+  verUsuario();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   try {

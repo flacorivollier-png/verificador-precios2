@@ -12,9 +12,30 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
+<link rel="preload" href="icons/portada.jpg" as="image">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+
+<!-- ===================== PORTADA / ACCESO ===================== -->
+<div id="portada" class="portada">
+  <div class="portada-img"></div>
+  <div id="portadaForm" class="portada-form oculto">
+    <form id="formAcceso" autocomplete="on">
+      <h2 id="accesoTitulo">Bienvenido</h2>
+      <p id="accesoAyuda" class="acceso-ayuda oculto"></p>
+      <input id="accesoClaveActual" type="password" placeholder="Contraseña actual" autocomplete="current-password" class="oculto">
+      <input id="accesoUsuario" type="text" placeholder="Usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+      <input id="accesoClave" type="password" placeholder="Contraseña" autocomplete="current-password">
+      <input id="accesoClave2" type="password" placeholder="Repetir contraseña" autocomplete="new-password" class="oculto">
+      <label id="accesoRecordarWrap" class="acceso-check"><input type="checkbox" id="accesoRecordar" checked> Recordarme en este teléfono</label>
+      <div id="accesoError" class="acceso-error" role="alert"></div>
+      <button id="btnAcceso" class="btn btn-tan">Entrar</button>
+      <button type="button" id="btnCancelarAcceso" class="acceso-link oculto">Cancelar</button>
+      <button type="button" id="btnOlvide" class="acceso-link oculto">Olvidé mi contraseña</button>
+    </form>
+  </div>
+</div>
 
 <header class="topbar">
   <h1 class="marca"><img src="icons/logo-guille.png" alt="Guille" class="logo"><span>Verificador de precios</span></h1>
@@ -89,6 +110,13 @@
       <li>Elegí <b>“Agregar a pantalla de inicio”</b>.</li>
     </ol>
     <p class="ayuda">Instalada así funciona sin internet y el iPhone no borra los datos guardados.</p>
+    <h2>Cuenta</h2>
+    <div class="info-box">Usuario: <b id="usuarioActual"></b></div>
+    <div class="fila-botones">
+      <button id="btnCambiarClave" class="btn btn-gris">🔑 Cambiar contraseña</button>
+      <button id="btnCerrarSesion" class="btn btn-gris">🚪 Cerrar sesión</button>
+    </div>
+
     <p class="ayuda version">Versión <span id="version"></span></p>
   </section>
 </main>
@@ -153,6 +181,7 @@
 
 <script src="vendor/html5-qrcode.min.js"></script>
 <script src="js/db.js"></script>
+<script src="js/acceso.js"></script>
 <script src="js/importar.js"></script>
 <script src="js/app.js"></script>
 </body>

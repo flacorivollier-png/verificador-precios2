@@ -290,3 +290,114 @@ input[type=checkbox] { accent-color: var(--verde); }
 .buscador input:focus, .mapeo select:focus, .campo textarea:focus { outline: 2px solid var(--azul); outline-offset: 0; }
 .scanner-acciones .btn-gris { background: #5a4636; color: var(--boton-txt); }
 #reader, #reader * { color: var(--boton-txt); }
+
+/* ===================== PORTADA / ACCESO ===================== */
+.portada {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow: hidden;
+  color: #f6eedf;
+  background: linear-gradient(to bottom, #1a1b1f 0%, #1a1b1f 45%, #6b3f24 80%, #4a2c19 100%);
+  transition: opacity .5s ease;
+}
+/* imagen completa del logo: ocupa todo el ancho */
+.portada-img {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  aspect-ratio: 900 / 1599;
+  background: url(../icons/portada.jpg) center top / 100% 100% no-repeat;
+  transform-origin: top center;
+  transition: transform .7s cubic-bezier(.2, .8, .2, 1);
+}
+/* con el formulario abierto, el logo sube para que no lo tape */
+.portada.con-form .portada-img { transform: translateY(-22.5%); }
+.portada::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(20, 14, 10, 0) 55%, rgba(20, 14, 10, .75) 100%);
+}
+.portada.saliendo { opacity: 0; }
+/* pantallas chicas (iPhone SE / mini): logo un poco más chico y formulario compacto */
+@media (max-height: 760px) and (max-aspect-ratio: 9/14) {
+  .portada.con-form .portada-img {
+    transform: translateY(-14.6%) scale(.72);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+  }
+  .portada-form { padding: 12px 14px 4px; }
+  .portada-form h2 { font-size: 19px; margin-bottom: 6px; }
+  .acceso-ayuda { font-size: 13px; margin-bottom: 6px; }
+  .portada-form input[type=text], .portada-form input[type=password] { padding: 10px 12px; margin: 6px 0; }
+  .acceso-check { margin: 6px 2px; }
+  .acceso-link { padding: 6px; }
+}
+@media (max-height: 620px) and (max-aspect-ratio: 9/14) {
+  .portada.con-form .portada-img { transform: translateY(-12.8%) scale(.6); }
+  .acceso-ayuda { display: none; }
+}
+/* pantallas anchas (iPad / compu): imagen entera centrada */
+@media (min-aspect-ratio: 9/14) {
+  .portada { background: radial-gradient(circle at center, #2a2320, #121214); }
+  .portada-img { left: 50%; right: auto; height: 100%; transform: translateX(-50%); }
+  .portada.con-form .portada-img { transform: translateX(-50%) translateY(-18%); }
+}
+.portada-form {
+  position: absolute;
+  z-index: 1;
+  left: 16px;
+  right: 16px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 18px 18px 10px;
+  background: rgba(28, 20, 15, .55);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(232, 200, 165, .28);
+  border-radius: 20px;
+  animation: subir .5s ease both;
+}
+@keyframes subir { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+.portada-form h2 {
+  margin: 0 0 10px;
+  text-align: center;
+  font-family: ui-serif, "New York", Georgia, serif;
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: .5px;
+}
+.acceso-ayuda { margin: 0 0 10px; text-align: center; font-size: 14px; color: #e5d6c1; line-height: 1.35; }
+.portada-form input[type=text], .portada-form input[type=password] {
+  display: block;
+  width: 100%;
+  font-size: 17px;
+  padding: 13px 14px;
+  margin: 8px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 200, 165, .35);
+  background: rgba(255, 248, 238, .1);
+  color: #fbf5ea;
+  font-family: inherit;
+}
+.portada-form input::placeholder { color: rgba(246, 238, 223, .6); }
+.portada-form input:focus { outline: 2px solid #d8b48f; outline-offset: 0; }
+.acceso-check { display: flex; align-items: center; gap: 8px; font-size: 15px; margin: 10px 2px; color: #eadcc7; }
+.acceso-check input { accent-color: #d8b48f; width: 20px; height: 20px; }
+.acceso-error { min-height: 20px; color: #ffb4a0; font-size: 14px; text-align: center; }
+.btn-tan { background: #d8b48f; color: #2b1f16; margin-top: 4px; }
+.btn-tan:disabled { opacity: .6; }
+.acceso-link {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #e5d0b5;
+  font-size: 14px;
+  padding: 10px;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

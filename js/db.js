@@ -104,5 +104,14 @@ const DB = (() => {
     return guardar('meta', { clave, valor });
   }
 
-  return { abrir, todos, obtener, guardar, borrar, reemplazarProductos, guardarVarios, getMeta, setMeta };
+  /** Borra todos los datos guardados en el teléfono. */
+  async function borrarTodo() {
+    const db = await abrir();
+    const stores = [...db.objectStoreNames];
+    const tx = db.transaction(stores, 'readwrite');
+    stores.forEach(s => tx.objectStore(s).clear());
+    return txFin(tx);
+  }
+
+  return { abrir, borrarTodo, todos, obtener, guardar, borrar, reemplazarProductos, guardarVarios, getMeta, setMeta };
 })();
