@@ -745,6 +745,7 @@ function conectarEventos() {
   $('#inputBackup').addEventListener('change', importarFichas);
   // apagar la cámara si la app pasa a segundo plano
   document.addEventListener('visibilitychange', () => { if (document.hidden) cerrarScanner(); });
+  document.addEventListener('acceso-bloqueado', () => cerrarScanner());
 }
 
 async function iniciar() {

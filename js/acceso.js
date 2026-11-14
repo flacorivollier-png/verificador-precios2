@@ -2,8 +2,6 @@
  * El usuario y la contraseña se crean la primera vez en el propio teléfono.
  * La contraseña no se guarda: se guarda sólo una "huella" (PBKDF2-SHA256 con sal). */
 const Acceso = (() => {
-  const CLAVE_SESION = 'guille-sesion';
-  const DIAS_RECORDAR = 30;
   const ITERACIONES = 150000;
   const $ = s => document.querySelector(s);
 
@@ -36,26 +34,57 @@ const Acceso = (() => {
     return (await huella(clave, c.sal)) === c.hash;
   }
 
-  /* ---------- sesión ---------- */
-  function sesionActiva() {
-    try {
-      if (sessionStorage.getItem(CLAVE_SESION) === '1') return true;
-      const hasta = parseInt(localStorage.getItem(CLAVE_SESION) || '0', 10);
-      return hasta > Date.now();
-    } catch (e) { return false; }
+  /* ---------- sesión: se vence a los 30 minutos sin usar la app ---------- */
+  const MINUTOS = 30;
+  const CLAVE_ACTIVIDAD = 'guille-actividad';
+  let ultimaActividad = 0;
+  let bloqueada = true;
+
+  function leerActividad() {
+    try { return parseInt(localStorage.getItem(CLAVE_ACTIVIDAD) || '0', 10); } catch (e) { return ultimaActividad; }
   }
 
-  function abrirSesion(recordar) {
-    try {
-      sessionStorage.setItem(CLAVE_SESION, '1');
-      if (recordar) localStorage.setItem(CLAVE_SESION, String(Date.now() + DIAS_RECORDAR * 86400000));
-      else localStorage.removeItem(CLAVE_SESION);
-    } catch (e) { /* sin almacenamiento: vale sólo mientras la app esté abierta */ }
+  function marcarActividad() {
+    ultimaActividad = Date.now();
+    try { localStorage.setItem(CLAVE_ACTIVIDAD, String(ultimaActividad)); } catch (e) {}
   }
+
+  const vencida = () => Date.now() - Math.max(leerActividad(), ultimaActividad) > MINUTOS * 60000;
+
+  function sesionActiva() { return !vencida(); }
 
   function cerrarSesion() {
-    try { sessionStorage.removeItem(CLAVE_SESION); localStorage.removeItem(CLAVE_SESION); } catch (e) {}
+    bloqueada = true;            // que el aviso de "app oculta" al recargar no vuelva a abrir la sesión
+    ultimaActividad = 0;
+    try { localStorage.removeItem(CLAVE_ACTIVIDAD); } catch (e) {}
     location.reload();
+  }
+
+  /** Vuelve a pedir usuario y contraseña (después de 30 minutos sin uso). */
+  function bloquear() {
+    if (bloqueada) return;
+    bloqueada = true;
+    document.querySelectorAll('dialog[open]').forEach(d => d.close());
+    document.dispatchEvent(new Event('acceso-bloqueado'));
+    colorBarra('#1c1714');
+    const p = $('#portada');
+    p.classList.remove('oculto', 'saliendo');
+    prepararFormulario('entrar');
+  }
+
+  function vigilarInactividad() {
+    let ultimoGuardado = 0;
+    const actividad = () => {
+      if (bloqueada) return;
+      // guardar como mucho cada 20 segundos
+      if (Date.now() - ultimoGuardado > 20000) { ultimoGuardado = Date.now(); marcarActividad(); }
+    };
+    ['pointerdown', 'keydown', 'scroll'].forEach(ev => document.addEventListener(ev, actividad, { passive: true, capture: true }));
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { if (!bloqueada) marcarActividad(); }
+      else if (!bloqueada && vencida()) bloquear();
+    });
+    setInterval(() => { if (!document.hidden && !bloqueada && vencida()) bloquear(); }, 30000);
   }
 
   /* ---------- pantalla ---------- */
@@ -73,7 +102,6 @@ const Acceso = (() => {
     mostrar($('#accesoAyuda'), !!titulos[m][1]);
     mostrar($('#accesoClaveActual'), m === 'cambiar');
     mostrar($('#accesoClave2'), m !== 'entrar');
-    mostrar($('#accesoRecordarWrap'), m !== 'cambiar');
     mostrar($('#btnOlvide'), m === 'entrar');
     mostrar($('#btnCancelarAcceso'), m === 'cambiar');
     $('#accesoClave').placeholder = m === 'entrar' ? 'Contraseña' : 'Contraseña nueva';
@@ -97,7 +125,7 @@ const Acceso = (() => {
     try {
       if (modo === 'entrar') {
         if (await verificar(usuario, clave)) {
-          abrirSesion($('#accesoRecordar').checked);
+          marcarActividad();
           entrar();
         } else {
           err.textContent = 'Usuario o contraseña incorrectos';
@@ -116,7 +144,7 @@ const Acceso = (() => {
       if (clave.length < 4) { err.textContent = 'La contraseña debe tener al menos 4 caracteres'; return; }
       if (clave !== $('#accesoClave2').value) { err.textContent = 'Las contraseñas no coinciden'; return; }
       await guardarCredenciales(usuario, clave);
-      if (modo === 'crear') abrirSesion($('#accesoRecordar').checked);
+      marcarActividad();
       entrar();
     } catch (ex) {
       err.textContent = ex.message;
@@ -128,8 +156,10 @@ const Acceso = (() => {
   async function olvide() {
     if (!confirm('Por seguridad, para crear una contraseña nueva hay que BORRAR todos los datos de este teléfono: la lista de precios y las fichas (fotos y características).\n\n¿Continuar?')) return;
     if (!confirm('¿Seguro? Si no tenés una copia de las fichas, se pierden.')) return;
+    bloqueada = true;
+    ultimaActividad = 0;
     await DB.borrarTodo();
-    try { localStorage.removeItem(CLAVE_SESION); sessionStorage.removeItem(CLAVE_SESION); } catch (e) {}
+    try { localStorage.removeItem(CLAVE_ACTIVIDAD); } catch (e) {}
     location.reload();
   }
 
@@ -140,6 +170,7 @@ const Acceso = (() => {
   }
 
   function entrar() {
+    bloqueada = false;
     colorBarra('#efe6d6');
     const p = $('#portada');
     p.classList.add('saliendo');
@@ -153,11 +184,13 @@ const Acceso = (() => {
     $('#formAcceso').addEventListener('submit', alEnviar);
     $('#btnOlvide').addEventListener('click', olvide);
     $('#btnCancelarAcceso').addEventListener('click', entrar);
+    try { localStorage.removeItem('guille-sesion'); } catch (e) {}  // formato viejo ("recordarme 30 días")
+    vigilarInactividad();
     return new Promise(async resolve => {
       alEntrar = resolve;
       const c = await DB.getMeta('acceso');
       if (c && sesionActiva()) {
-        // ya tiene sesión: mostrar el logo un momento (tocar para saltear)
+        // usó la app hace menos de 30 minutos: mostrar el logo un momento (tocar para saltear)
         let hecho = false;
         const saltar = () => {
           $('#portada').removeEventListener('click', saltar);
