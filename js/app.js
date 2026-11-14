@@ -45,6 +45,16 @@ function formatearPrecio(p) {
   });
 }
 
+/** Precio "lindo": $ chiquito arriba, entero grande, centavos chiquitos arriba. */
+function precioElegante(p) {
+  if (!p || p.precio == null) return h('span', { class: 'pe' }, (p && p.precioTexto) || '—');
+  const [entero, dec] = p.precio.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split(',');
+  return h('span', { class: 'pe' },
+    h('span', { class: 'pe-moneda' }, '$'),
+    h('span', { class: 'pe-entero' }, entero),
+    dec !== '00' ? h('span', { class: 'pe-dec' }, dec) : null);
+}
+
 function formatearFecha(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -177,7 +187,9 @@ async function mostrarProducto(p) {
   tarjeta.append(
     h('div', { class: 'nombre' }, p.nombre || '(sin nombre)'),
     p.presentacion ? h('div', { class: 'presentacion' }, p.presentacion) : null,
-    h('div', { class: 'precio' }, formatearPrecio(p)),
+    h('div', { class: 'precio-box' },
+      h('div', { class: 'precio-etiqueta' }, 'PRECIO'),
+      h('div', { class: 'precio' }, precioElegante(p))),
     h('div', { class: 'codigo' }, 'Código ', p.codigo)
   );
   if (f && f.descripcion) tarjeta.append(h('div', { class: 'descripcion' }, f.descripcion));
@@ -221,7 +233,7 @@ function mostrarLista(ul, lista, nota, agregar) {
       h('div', { class: 'txt' },
         h('div', { class: 'n' }, (f && f.destacado ? '★ ' : ''), p.nombre || '(no está en la lista actual)'),
         h('div', { class: 'c' }, codigo, p.presentacion ? ' · ' + p.presentacion : '')),
-      h('div', { class: 'p' }, p.codigo ? formatearPrecio(p) : '')
+      h('div', { class: 'p' }, p.codigo ? precioElegante(p) : '')
     ));
   });
   if (nota) ul.append(h('div', { class: 'lista-msg' }, nota));
