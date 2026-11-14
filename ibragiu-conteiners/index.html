@@ -24,7 +24,7 @@ header{
   padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center
 }
 header h1{margin:0 12px 0 0;font-size:22px;letter-spacing:.5px}
-header h1 span{color:var(--accent)}
+header h1 img{height:52px;display:block}
 input,select,textarea{
   font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--border);
   background:#0b1222;color:var(--text);width:100%
@@ -98,6 +98,7 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
   .grilla{grid-template-columns:repeat(2,1fr);gap:10px}
   .fila{grid-template-columns:1fr}
   header h1{width:100%}
+  header h1 img{height:68px}
 }
 
 /* Impresión: catálogo limpio */
@@ -116,7 +117,7 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 <body>
 
 <header>
-  <h1>Ibragiu <span>Conteiners</span></h1>
+  <h1><img src="logo.png" alt="Ibragiu Home"></h1>
   <input class="search" id="buscar" placeholder="Buscar por nombre, código de barras o interno…">
   <select class="filtro" id="filtroCat"><option value="">Todas las categorías</option></select>
   <select class="filtro" id="filtroStock">

@@ -1,8 +1,8 @@
 // Guarda la app en el dispositivo para que funcione sin internet.
 // Cambiar VERSION cada vez que se modifique la app para que se actualice.
-const VERSION = "ibragiu-v1";
+const VERSION = "ibragiu-v2";
 const ARCHIVOS = [
-  "./", "./index.html", "./manifest.json",
+  "./", "./index.html", "./manifest.json", "./logo.png",
   "./lib/JsBarcode.all.min.js", "./lib/html5-qrcode.min.js",
   "./icons/icon-192.png", "./icons/icon-512.png",
   "./icons/icon-192-maskable.png", "./icons/icon-512-maskable.png", "./icons/icon-180.png"
