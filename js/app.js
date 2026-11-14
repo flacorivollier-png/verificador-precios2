@@ -752,18 +752,18 @@ async function iniciar() {
   conectarEventos();
   $('#btnCambiarClave').addEventListener('click', () => Acceso.cambiar());
   $('#btnCerrarSesion').addEventListener('click', () => { if (confirm('¿Cerrar sesión?')) Acceso.cerrarSesion(); });
+  // la lista se carga mientras se ve la portada
+  const carga = cargarTodo().catch(err => {
+    $('#estadoBase').textContent = 'Error';
+    toast('No se pudo abrir la base de datos: ' + err.message, 6000);
+  });
   await Acceso.iniciar();
   const verUsuario = () => Acceso.usuarioActual().then(u => { $('#usuarioActual').textContent = u; });
   document.addEventListener('acceso-listo', verUsuario);
   verUsuario();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  try {
-    await cargarTodo();
-  } catch (err) {
-    $('#estadoBase').textContent = 'Error';
-    toast('No se pudo abrir la base de datos: ' + err.message, 6000);
-  }
+  await carga;
   if (!productos.length) irA('datos');
 }
 
