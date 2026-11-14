@@ -355,7 +355,7 @@ function renderFichas() {
     }
   };
   masBtn.addEventListener('click', pagina);
-  ul.append(h('div', { class: 'lista-msg' }, `${lista.length.toLocaleString('es-AR')} fichas`));
+  ul.append(h('div', { class: 'lista-msg' }, lista.length === 1 ? '1 ficha' : `${lista.length.toLocaleString('es-AR')} fichas`));
   pagina();
 }
 
