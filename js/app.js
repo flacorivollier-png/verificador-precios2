@@ -55,35 +55,26 @@ function precioElegante(p) {
     dec !== '00' ? h('span', { class: 'pe-dec' }, dec) : null);
 }
 
-/* ---------- efectivo y cuotas ---------- */
-let configPrecios = { efectivo: 10, cuotas: [] };   // cuotas: [{ n, recargo }]
+/* ---------- precio en efectivo ---------- */
+let configPrecios = { efectivo: 10 };
 
 const redondear2 = v => Math.round(v * 100) / 100;
 const precioEfectivo = v => redondear2(v * (1 - (configPrecios.efectivo || 0) / 100));
-const valorCuota = (v, c) => redondear2(v * (1 + (c.recargo || 0) / 100) / c.n);
 
 async function cargarConfigPrecios() {
   const c = await DB.getMeta('precios');
-  if (c) configPrecios = { efectivo: c.efectivo ?? 10, cuotas: c.cuotas || [] };
+  if (c && c.efectivo != null) configPrecios = { efectivo: c.efectivo };
   $('#cfgEfectivo').value = configPrecios.efectivo;
-  [1, 2].forEach(i => {
-    const q = configPrecios.cuotas[i - 1];
-    $('#cfgCuotas' + i).value = q ? q.n : '';
-    $('#cfgRecargo' + i).value = q && q.recargo ? q.recargo : '';
-  });
 }
 
 async function guardarConfigPrecios() {
-  const num = id => { const v = parseFloat(String($(id).value).replace(',', '.')); return isFinite(v) ? v : 0; };
-  const cuotas = [1, 2]
-    .map(i => ({ n: Math.round(num('#cfgCuotas' + i)), recargo: num('#cfgRecargo' + i) }))
-    .filter(q => q.n >= 2);
-  configPrecios = { efectivo: Math.min(90, Math.max(0, num('#cfgEfectivo'))), cuotas };
+  const v = parseFloat(String($('#cfgEfectivo').value).replace(',', '.'));
+  configPrecios = { efectivo: Math.min(90, Math.max(0, isFinite(v) ? v : 0)) };
   await DB.setMeta('precios', configPrecios);
   toast('Guardado ✓', 1200);
 }
 
-/** Bloque con precio en efectivo y cuotas, debajo del precio principal. */
+/** Precio en efectivo, debajo del precio principal. */
 function preciosExtra(p) {
   if (!p || p.precio == null) return null;
   const box = h('div', { class: 'precio-extra' });
@@ -92,11 +83,6 @@ function preciosExtra(p) {
       precioElegante({ precio: precioEfectivo(p.precio) }),
       h('small', null, `-${String(configPrecios.efectivo).replace('.', ',')}%`)));
   }
-  configPrecios.cuotas.forEach(c => {
-    box.append(h('div', { class: 'cuotas' }, '💳 ', h('b', null, `${c.n} cuotas`), ' de ',
-      h('b', null, formatearPrecio({ precio: valorCuota(p.precio, c) })),
-      c.recargo ? ` (total ${formatearPrecio({ precio: redondear2(p.precio * (1 + c.recargo / 100)) })})` : ' sin interés'));
-  });
   return box.childNodes.length ? box : null;
 }
 
@@ -108,7 +94,6 @@ function textoCompartir(p, f) {
   if (p.precio != null) {
     lineas.push(`💲 Precio: ${formatearPrecio(p)}`);
     if (configPrecios.efectivo > 0) lineas.push(`💵 Efectivo: ${formatearPrecio({ precio: precioEfectivo(p.precio) })} (${String(configPrecios.efectivo).replace('.', ',')}% off)`);
-    configPrecios.cuotas.forEach(c => lineas.push(`💳 ${c.n} cuotas de ${formatearPrecio({ precio: valorCuota(p.precio, c) })}${c.recargo ? '' : ' sin interés'}`));
   } else if (p.precioTexto) lineas.push(`💲 Precio: ${p.precioTexto}`);
   if (f && f.descripcion) lineas.push('', f.descripcion);
   if (f && f.caracteristicas) {
@@ -883,8 +868,7 @@ function conectarEventos() {
   $('#soloSinFoto').addEventListener('change', renderFichas);
   $('#segConFicha').addEventListener('click', () => mostrarSolapaFichas('ficha'));
   $('#segParaFoto').addEventListener('click', () => mostrarSolapaFichas('foto'));
-  ['#cfgEfectivo', '#cfgCuotas1', '#cfgRecargo1', '#cfgCuotas2', '#cfgRecargo2']
-    .forEach(id => $(id).addEventListener('change', guardarConfigPrecios));
+  $('#cfgEfectivo').addEventListener('change', guardarConfigPrecios);
   let filtroTimer;
   $('#filtroFichas').addEventListener('input', () => { clearTimeout(filtroTimer); filtroTimer = setTimeout(renderFichas, 250); });
   $('#inputBackup').addEventListener('change', importarFichas);

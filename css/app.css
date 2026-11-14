@@ -415,7 +415,7 @@ input[type=checkbox] { accent-color: var(--verde); }
   text-underline-offset: 3px;
 }
 
-/* ---------- precio en efectivo / cuotas ---------- */
+/* ---------- precio en efectivo ---------- */
 .precio-extra { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 8px 0 6px; }
 .efectivo {
   display: inline-flex; align-items: baseline; gap: 8px;
@@ -424,8 +424,6 @@ input[type=checkbox] { accent-color: var(--verde); }
 }
 .efectivo .pe { font-size: 26px; }
 .efectivo small { font-size: 12px; color: var(--suave); font-weight: 500; }
-.cuotas { font-size: 15px; color: var(--suave); }
-.cuotas b { color: var(--texto); font-weight: 600; }
 .lista .p { display: flex; flex-direction: column; align-items: flex-end; }
 .lista .p .efvo { font-size: 13px; color: var(--suave); font-family: inherit; }
 .acciones-tarjeta { display: flex; gap: 8px; margin-top: 14px; }
