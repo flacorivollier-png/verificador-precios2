@@ -12,8 +12,17 @@ Funciona sin internet una vez instalada y guarda todo en el teléfono.
 - **Fichas**: a cualquier producto le podés agregar foto, descripción, características
   (una por línea, `Marca: Arcor`) y marcarlo como ★ destacado.
   **Las fichas se conservan cuando actualizás la lista de precios.**
-- **Copia de seguridad** de las fichas (con fotos) a un archivo `.json` para guardar en Archivos/iCloud
-  o pasar a otro teléfono.
+- **Copia de seguridad** de las fichas (con fotos) en archivos `.json` para guardar en Archivos/iCloud
+  o pasar a otro teléfono:
+  - *Copia de lo nuevo*: sólo lo agregado o cambiado desde la última copia (rápida, para hacer seguido).
+  - *Copia completa*: todo, dividido en archivos de hasta 250 fotos (~25 MB c/u).
+  - Para restaurar se pueden elegir varios archivos a la vez.
+
+## Capacidad
+Pensada para **50.000+ productos y hasta ~5.000 fotos**. Las fotos se achican a 900 px
+(~50–120 KB cada una), así que 5.000 fotos ocupan alrededor de 0,5 GB en el teléfono.
+Las miniaturas se leen sólo cuando se muestran y la lista de fichas se pagina de a 50,
+así que la app abre igual de rápido con muchas fotos. En **⚙️ Datos** se ve el espacio usado.
 
 ## Publicarla (gratis, con GitHub Pages)
 La cámara del iPhone sólo funciona en páginas `https://`. GitHub Pages lo da gratis:

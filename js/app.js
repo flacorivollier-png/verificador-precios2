@@ -102,7 +102,20 @@ async function actualizarInfo() {
   }
   const conFoto = [...fichas.values()].filter(f => f.tieneFoto).length;
   const dest = [...fichas.values()].filter(f => f.destacado).length;
-  $('#infoFichas').textContent = `${fichas.size} fichas · ${conFoto} con foto · ${dest} destacados`;
+  const ultima = await DB.getMeta('ultimaCopia');
+  const pendientes = [...fichas.values()].filter(f => !ultima || (f.actualizado || '') > ultima).length;
+  const box = $('#infoFichas');
+  box.innerHTML = '';
+  box.append(
+    h('div', null, `${fichas.size.toLocaleString('es-AR')} fichas · ${conFoto.toLocaleString('es-AR')} con foto · ${dest} destacados`),
+    h('div', null, 'Última copia: ', ultima ? formatearFecha(ultima) : 'nunca',
+      pendientes ? ` · ${pendientes} cambios sin copiar` : ' · todo copiado'));
+  if (navigator.storage && navigator.storage.estimate) {
+    navigator.storage.estimate().then(est => {
+      const mb = x => (x / 1048576).toLocaleString('es-AR', { maximumFractionDigits: 0 }) + ' MB';
+      box.append(h('div', null, `Espacio usado: ${mb(est.usage || 0)}` + (est.quota ? ` de ${mb(est.quota)} disponibles` : '')));
+    }).catch(() => {});
+  }
 }
 
 /* ---------- búsqueda ---------- */
@@ -192,15 +205,17 @@ async function mostrarProducto(p) {
   }
 }
 
-function mostrarLista(ul, lista, nota) {
-  ul.innerHTML = '';
+function mostrarLista(ul, lista, nota, agregar) {
+  if (!agregar) ul.innerHTML = '';
   lista.forEach(item => {
     const p = item.producto || item;
     const codigo = item.codigo || p.codigo;
     const f = fichas.get(codigo);
-    const mini = f && f.mini
-      ? h('img', { class: 'mini', src: f.mini, alt: '' })
-      : h('div', { class: 'mini vacia' }, '📦');
+    let mini;
+    if (f && f.tieneFoto) {
+      mini = h('img', { class: 'mini', alt: '' });
+      DB.obtener('minis', codigo).then(m => { if (m) mini.src = m.url; }).catch(() => {});
+    } else mini = h('div', { class: 'mini vacia' }, '📦');
     ul.append(h('li', { onclick: () => { irA('consultar'); mostrarProducto(p.codigo ? p : { codigo, nombre: '(no está en la lista actual)', precio: null }); window.scrollTo(0, 0); } },
       mini,
       h('div', { class: 'txt' },
@@ -309,21 +324,39 @@ function irA(vista) {
   if (vista === 'fichas') renderFichas();
 }
 
+const POR_PAGINA = 50;
+
 function renderFichas() {
   const solo = $('#soloDestacados').checked;
+  const sinFoto = $('#soloSinFoto').checked;
+  const terminos = Importar.normalizar($('#filtroFichas').value).split(/\s+/).filter(Boolean);
   const lista = [...fichas.values()]
-    .filter(f => !solo || f.destacado)
+    .filter(f => (!solo || f.destacado) && (!sinFoto || !f.tieneFoto))
     .map(f => ({ codigo: f.codigo, producto: porCodigo.get(f.codigo) || { nombre: '' }, destacado: f.destacado }))
+    .filter(x => !terminos.length || terminos.every(t => Importar.normalizar(x.producto.nombre + ' ' + x.codigo).includes(t)))
     .sort((a, b) => (b.destacado - a.destacado) || String(a.producto.nombre).localeCompare(b.producto.nombre, 'es'));
   const ul = $('#listaFichas');
+  ul.innerHTML = '';
   if (!lista.length) {
-    ul.innerHTML = '';
-    ul.append(h('div', { class: 'lista-msg' }, solo
-      ? 'No hay productos destacados todavía.'
+    ul.append(h('div', { class: 'lista-msg' }, fichas.size
+      ? 'Ninguna ficha coincide con el filtro.'
       : 'Todavía no agregaste fichas. Buscá un producto y tocá “Agregar foto / características”.'));
     return;
   }
-  mostrarLista(ul, lista);
+  let mostradas = 0;
+  const masBtn = h('button', { class: 'btn btn-gris', type: 'button' });
+  const pagina = () => {
+    masBtn.remove();
+    mostrarLista(ul, lista.slice(mostradas, mostradas + POR_PAGINA), null, true);
+    mostradas += POR_PAGINA;
+    if (mostradas < lista.length) {
+      masBtn.textContent = `Ver más (quedan ${(lista.length - mostradas).toLocaleString('es-AR')})`;
+      ul.append(masBtn);
+    }
+  };
+  masBtn.addEventListener('click', pagina);
+  ul.append(h('div', { class: 'lista-msg' }, `${lista.length.toLocaleString('es-AR')} fichas`));
+  pagina();
 }
 
 /* ---------- importar lista ---------- */
@@ -430,7 +463,7 @@ async function redimensionar(img, max, calidad) {
   return aBlob(c, calidad);
 }
 
-function miniatura(img, lado = 120) {
+function miniatura(img, lado = 96) {
   const c = document.createElement('canvas');
   c.width = c.height = lado;
   const ctx = c.getContext('2d');
@@ -438,7 +471,7 @@ function miniatura(img, lado = 120) {
   ctx.fillRect(0, 0, lado, lado);
   const s = Math.min(img.naturalWidth, img.naturalHeight);
   ctx.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, lado, lado);
-  return c.toDataURL('image/jpeg', 0.7);
+  return c.toDataURL('image/jpeg', 0.6);
 }
 
 function mostrarFotoDialogo(url) {
@@ -479,7 +512,7 @@ async function alElegirFoto(e) {
   if (!file) return;
   try {
     const img = await cargarImagen(file);
-    fotoNueva = { blob: await redimensionar(img, 1200, 0.8), mini: miniatura(img) };
+    fotoNueva = { blob: await redimensionar(img, 900, 0.72), mini: miniatura(img) };
     quitarFoto = false;
     mostrarFotoDialogo(URL.createObjectURL(fotoNueva.blob));
   } catch (err) {
@@ -496,14 +529,17 @@ async function guardarFicha() {
     caracteristicas: $('#fichaCaracteristicas').value.trim(),
     destacado: $('#fichaDestacado').checked,
     tieneFoto: quitarFoto ? false : (!!fotoNueva || !!anterior.tieneFoto),
-    mini: quitarFoto ? null : (fotoNueva ? fotoNueva.mini : anterior.mini || null),
     actualizado: new Date().toISOString(),
   };
   try {
     if (fotoNueva) {
-      await DB.guardar('fotos', { codigo, tipo: 'image/jpeg', datos: await fotoNueva.blob.arrayBuffer() });
+      await DB.guardarVarios({
+        fotos: [{ codigo, tipo: 'image/jpeg', datos: await fotoNueva.blob.arrayBuffer() }],
+        minis: [{ codigo, url: fotoNueva.mini }],
+      });
     } else if (quitarFoto) {
       await DB.borrar('fotos', codigo);
+      await DB.borrar('minis', codigo);
     }
     const vacia = !ficha.descripcion && !ficha.caracteristicas && !ficha.destacado && !ficha.tieneFoto;
     if (vacia) {
@@ -524,6 +560,7 @@ async function borrarFicha() {
   if (!confirm('¿Borrar la foto y las características de este producto?')) return;
   const codigo = fichaActual;
   await DB.borrar('fotos', codigo);
+  await DB.borrar('minis', codigo);
   await DB.borrar('fichas', codigo);
   fichas.delete(codigo);
   $('#dlgFicha').close('borrada');
@@ -550,61 +587,120 @@ function blobADataURL(blob) {
   });
 }
 
-async function exportarFichas() {
-  if (!fichas.size) { toast('No hay fichas para exportar'); return; }
-  toast('Preparando copia…');
-  const salida = [];
-  for (const f of fichas.values()) {
-    const item = { ...f };
-    if (f.tieneFoto) {
-      const reg = await DB.obtener('fotos', f.codigo);
-      if (reg) item.foto = await blobADataURL(new Blob([reg.datos], { type: reg.tipo }));
-    }
-    salida.push(item);
+const FOTOS_POR_ARCHIVO = 250;   // ~25 MB por archivo, manejable en el iPhone
+
+function progresoCopia(n, total, txt) {
+  $('#progresoCopia').classList.remove('oculto');
+  $('#barraCopia').style.width = Math.round(n / Math.max(total, 1) * 100) + '%';
+  $('#progresoCopiaTxt').textContent = txt;
+}
+
+async function exportarFichas(completa) {
+  const desde = completa ? null : await DB.getMeta('ultimaCopia');
+  const inicio = new Date().toISOString();
+  const elegidas = [...fichas.values()].filter(f => !desde || (f.actualizado || '') > desde);
+  if (!elegidas.length) {
+    toast(desde ? 'No hay cambios desde la última copia (' + formatearFecha(desde) + ')' : 'No hay fichas para exportar', 4000);
+    return;
   }
-  const json = JSON.stringify({ app: 'verificador-precios', version: 1, fecha: new Date().toISOString(), fichas: salida });
-  const nombre = 'fichas-' + new Date().toISOString().slice(0, 10) + '.json';
-  const file = new File([json], nombre, { type: 'application/json' });
+  // repartir en partes: cada parte tiene hasta FOTOS_POR_ARCHIVO fotos
+  const partes = [[]];
+  let fotosEnParte = 0;
+  for (const f of elegidas) {
+    if (f.tieneFoto && fotosEnParte >= FOTOS_POR_ARCHIVO) { partes.push([]); fotosEnParte = 0; }
+    partes[partes.length - 1].push(f);
+    if (f.tieneFoto) fotosEnParte++;
+  }
+  const fecha = inicio.slice(0, 10);
+  const tipo = completa ? 'completa' : 'nuevo';
+  const archivos = [];
+  let hechas = 0;
   try {
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: nombre });
-      return;
+    for (let k = 0; k < partes.length; k++) {
+      const salida = [];
+      for (const f of partes[k]) {
+        const item = { ...f };
+        if (f.tieneFoto) {
+          const [reg, mini] = await Promise.all([DB.obtener('fotos', f.codigo), DB.obtener('minis', f.codigo)]);
+          if (reg) item.foto = await blobADataURL(new Blob([reg.datos], { type: reg.tipo }));
+          if (mini) item.mini = mini.url;
+        }
+        salida.push(item);
+        hechas++;
+        if (hechas % 20 === 0) progresoCopia(hechas, elegidas.length, `Preparando ${hechas} de ${elegidas.length}`);
+      }
+      const nombre = partes.length > 1
+        ? `fichas-${tipo}-${fecha}-parte${k + 1}de${partes.length}.json`
+        : `fichas-${tipo}-${fecha}.json`;
+      const json = JSON.stringify({ app: 'verificador-precios', version: 2, fecha: inicio, parte: k + 1, partes: partes.length, fichas: salida });
+      archivos.push(new File([json], nombre, { type: 'application/json' }));
+    }
+  } finally {
+    $('#progresoCopia').classList.add('oculto');
+  }
+
+  let ok = false;
+  try {
+    if (navigator.canShare && navigator.canShare({ files: archivos })) {
+      await navigator.share({ files: archivos });
+      ok = true;
     }
   } catch (err) {
-    if (err && err.name === 'AbortError') return;
+    if (err && err.name === 'AbortError') { toast('Copia cancelada'); return; }
   }
-  const url = URL.createObjectURL(file);
-  const a = h('a', { href: url, download: nombre });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  if (!ok) {
+    for (const file of archivos) {
+      const url = URL.createObjectURL(file);
+      const a = h('a', { href: url, download: file.name });
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  await DB.setMeta('ultimaCopia', inicio);
+  await actualizarInfo();
+  toast(`✅ Copia lista: ${elegidas.length} fichas en ${archivos.length} archivo(s)`, 4000);
 }
 
 async function importarFichas(e) {
-  const file = e.target.files[0];
+  const files = [...e.target.files];
   e.target.value = '';
-  if (!file) return;
+  if (!files.length) return;
+  let n = 0;
   try {
-    const datos = JSON.parse(await file.text());
-    if (!datos || !Array.isArray(datos.fichas)) throw new Error('No es una copia de fichas');
-    let n = 0;
-    for (const item of datos.fichas) {
-      if (!item.codigo) continue;
-      const { foto, ...ficha } = item;
-      if (foto) {
-        const buf = await (await fetch(foto)).arrayBuffer();
-        await DB.guardar('fotos', { codigo: ficha.codigo, tipo: 'image/jpeg', datos: buf });
-        ficha.tieneFoto = true;
+    for (let k = 0; k < files.length; k++) {
+      const datos = JSON.parse(await files[k].text());
+      if (!datos || !Array.isArray(datos.fichas)) throw new Error(files[k].name + ' no es una copia de fichas');
+      const lote = { fichas: [], fotos: [], minis: [] };
+      for (const item of datos.fichas) {
+        if (!item.codigo) continue;
+        const { foto, mini, ...ficha } = item;
+        if (foto) {
+          lote.fotos.push({ codigo: ficha.codigo, tipo: 'image/jpeg', datos: await (await fetch(foto)).arrayBuffer() });
+          if (mini) lote.minis.push({ codigo: ficha.codigo, url: mini });
+          ficha.tieneFoto = true;
+        }
+        lote.fichas.push(ficha);
+        progresoCopia(k, files.length, `Archivo ${k + 1} de ${files.length}…`);
+        if (lote.fichas.length >= 100) {
+          await DB.guardarVarios(lote);
+          lote.fichas.forEach(f => fichas.set(f.codigo, f));
+          n += lote.fichas.length;
+          lote.fichas = []; lote.fotos = []; lote.minis = [];
+        }
       }
-      await DB.guardar('fichas', ficha);
-      fichas.set(ficha.codigo, ficha);
-      n++;
+      await DB.guardarVarios(lote);
+      lote.fichas.forEach(f => fichas.set(f.codigo, f));
+      n += lote.fichas.length;
     }
-    await actualizarInfo();
-    toast(`✅ ${n} fichas importadas`, 4000);
+    toast(`✅ ${n} fichas restauradas`, 4000);
   } catch (err) {
-    toast('No se pudo importar: ' + err.message, 5000);
+    toast('No se pudo restaurar: ' + err.message + (n ? ` (${n} fichas sí se cargaron)` : ''), 6000);
+  } finally {
+    $('#progresoCopia').classList.add('oculto');
+    await actualizarInfo();
   }
 }
 
@@ -629,7 +725,11 @@ function conectarEventos() {
     if ($('#dlgFicha').returnValue === 'guardar') guardarFicha();
     mostrarFotoDialogo(null);
   });
-  $('#btnExportar').addEventListener('click', exportarFichas);
+  $('#btnExportar').addEventListener('click', () => exportarFichas(false));
+  $('#btnExportarTodo').addEventListener('click', () => exportarFichas(true));
+  $('#soloSinFoto').addEventListener('change', renderFichas);
+  let filtroTimer;
+  $('#filtroFichas').addEventListener('input', () => { clearTimeout(filtroTimer); filtroTimer = setTimeout(renderFichas, 250); });
   $('#inputBackup').addEventListener('change', importarFichas);
   // apagar la cámara si la app pasa a segundo plano
   document.addEventListener('visibilitychange', () => { if (document.hidden) cerrarScanner(); });

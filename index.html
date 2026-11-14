@@ -47,8 +47,12 @@
   <section id="vista-fichas" class="vista">
     <h2>Productos con ficha</h2>
     <p class="ayuda">Productos a los que les agregaste foto, descripción o características.</p>
+    <div class="buscador">
+      <input id="filtroFichas" type="search" placeholder="Filtrar por nombre o código" autocomplete="off">
+    </div>
     <div class="filtros">
       <label><input type="checkbox" id="soloDestacados"> Solo destacados ★</label>
+      <label><input type="checkbox" id="soloSinFoto"> Sin foto</label>
     </div>
     <ul id="listaFichas" class="lista"></ul>
   </section>
@@ -66,12 +70,17 @@
 
     <h2>Copia de seguridad de fichas</h2>
     <p class="ayuda">Las fotos y características quedan guardadas sólo en este teléfono. Hacé una copia de vez en cuando (se guarda en Archivos / iCloud Drive) para no perderlas o para pasarlas a otro equipo.</p>
+    <p class="ayuda"><b>Copia de lo nuevo</b>: sólo lo que agregaste o cambiaste desde la última copia (rápida, para hacer seguido). <b>Copia completa</b>: todo; si hay muchas fotos se divide en varios archivos.</p>
     <div id="infoFichas" class="info-box"></div>
-    <button id="btnExportar" class="btn btn-azul">⬇️ Exportar copia de fichas</button>
+    <div class="fila-botones">
+      <button id="btnExportar" class="btn btn-azul">⬇️ Copia de lo nuevo</button>
+      <button id="btnExportarTodo" class="btn btn-gris">⬇️ Copia completa</button>
+    </div>
     <label class="btn btn-gris btn-archivo">
-      ⬆️ Importar copia de fichas
-      <input type="file" id="inputBackup" accept=".json,application/json">
+      ⬆️ Restaurar copia (podés elegir varios archivos)
+      <input type="file" id="inputBackup" accept=".json,application/json" multiple>
     </label>
+    <div id="progresoCopia" class="progreso oculto"><div id="barraCopia" class="barra"></div><span id="progresoCopiaTxt"></span></div>
 
     <h2>Instalar en el iPhone</h2>
     <ol class="ayuda">

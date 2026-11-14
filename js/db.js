@@ -2,11 +2,12 @@
  *  - productos: la lista de precios importada (se reemplaza en cada importación)
  *  - fichas:    descripción / características / miniatura (NO se tocan al importar)
  *  - fotos:     foto completa de cada ficha (separada para que las listas carguen rápido)
+ *  - minis:     miniatura de cada foto, se lee sólo al mostrar una lista
  *  - meta:      datos varios (fecha de la última importación, etc.)
  */
 const DB = (() => {
   const NOMBRE = 'verificador-precios';
-  const VERSION = 1;
+  const VERSION = 2;
   let dbPromise = null;
 
   function abrir() {
@@ -18,6 +19,7 @@ const DB = (() => {
         if (!db.objectStoreNames.contains('productos')) db.createObjectStore('productos', { keyPath: 'codigo' });
         if (!db.objectStoreNames.contains('fichas')) db.createObjectStore('fichas', { keyPath: 'codigo' });
         if (!db.objectStoreNames.contains('fotos')) db.createObjectStore('fotos', { keyPath: 'codigo' });
+        if (!db.objectStoreNames.contains('minis')) db.createObjectStore('minis', { keyPath: 'codigo' });
         if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'clave' });
       };
       req.onsuccess = () => resolve(req.result);
@@ -83,11 +85,13 @@ const DB = (() => {
     }
   }
 
-  async function guardarVarios(store, lista) {
+  /** Guarda en varios almacenes en una sola transacción: { fichas: [...], fotos: [...] } */
+  async function guardarVarios(porStore) {
+    const stores = Object.keys(porStore).filter(k => porStore[k].length);
+    if (!stores.length) return;
     const db = await abrir();
-    const tx = db.transaction(store, 'readwrite');
-    const st = tx.objectStore(store);
-    lista.forEach(v => st.put(v));
+    const tx = db.transaction(stores, 'readwrite');
+    stores.forEach(k => { const st = tx.objectStore(k); porStore[k].forEach(v => st.put(v)); });
     return txFin(tx);
   }
 

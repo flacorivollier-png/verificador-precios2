@@ -154,7 +154,8 @@ h2 { font-size: 20px; margin: 22px 0 8px; }
 .lista .txt .c { font-size: 13px; color: var(--suave); }
 .lista .p { font-weight: 700; color: var(--verde); white-space: nowrap; font-size: 18px; }
 .lista-msg { color: var(--suave); text-align: center; padding: 10px; }
-.filtros { margin: 8px 0; }
+.filtros { margin: 8px 0; display: flex; gap: 18px; flex-wrap: wrap; }
+.filtros label { display: flex; align-items: center; gap: 6px; }
 
 /* ---------- datos ---------- */
 .info-box {
