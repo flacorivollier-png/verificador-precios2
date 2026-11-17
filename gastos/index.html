@@ -232,6 +232,32 @@ h1{font-size:28px;letter-spacing:-.02em}
 .banner{border-radius:20px;box-shadow:var(--shadow)}
 .btn{border-radius:14px}
 @media (max-width:400px){.summary .big{font-size:38px}.summary .rows b{font-size:13px}}
+
+/* ===== barra para anotar rápido ===== */
+.wrap{padding-bottom:calc(200px + env(safe-area-inset-bottom))}
+.quick{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:8px 12px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--bg) 70%,color-mix(in srgb,var(--bg) 0%,transparent));display:flex;flex-direction:column;gap:8px;max-width:584px;margin:0 auto}
+.qchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 0;-webkit-overflow-scrolling:touch}
+.qchips::-webkit-scrollbar{display:none}
+.qchip{flex:none;display:inline-flex;align-items:center;gap:6px;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:999px;padding:5px 12px 5px 5px;font-size:14px;color:var(--ink)}
+.qchip .cicon{width:26px;height:26px;border-radius:50%;font-size:14px}
+.qchip b{font-weight:600;color:var(--muted)}
+.qchip:active{transform:scale(.96)}
+.qrow{display:flex;gap:8px;align-items:center;background:var(--surface);border-radius:20px;padding:6px;box-shadow:0 8px 28px -8px rgba(10,30,90,.35),var(--shadow)}
+.qrow input{flex:1;min-width:0;border:0;background:transparent;font-size:17px;padding:10px 8px 10px 12px;color:var(--ink);outline:none}
+.qrow input::placeholder{color:var(--muted)}
+.qsend,.qmore{flex:none;width:44px;height:44px;border-radius:14px;border:0;display:grid;place-items:center}
+.qsend{background:var(--accent);color:var(--accent-ink)}
+.qmore{background:var(--accent-soft);color:var(--accent)}
+.qsend svg,.qmore svg{width:22px;height:22px}
+.qrow:focus-within{outline:2px solid var(--accent);outline-offset:0}
+.toast{bottom:calc(150px + env(safe-area-inset-bottom));display:none;align-items:center;gap:14px;border-radius:14px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.show{display:flex}
+.toast{width:max-content;max-width:min(92vw,420px);justify-content:space-between}
+.qchip span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toast button{border:0;background:transparent;color:var(--accent-soft);font-weight:700;padding:4px 0;white-space:nowrap}
+.nudge{display:flex;gap:10px;align-items:center;background:var(--surface);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);font-size:15px}
+.nudge-ic{font-size:22px}
 </style>
 </head>
 <body>
@@ -262,10 +288,14 @@ h1{font-size:28px;letter-spacing:-.02em}
   <main id="panel"></main>
 </div>
 
-<div class="fabs" id="fabs">
-  <button class="fab mic" id="micFab" aria-label="Cargar hablando"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-  <button class="fab" id="fab">+ Gasto</button>
-</div>
+<form class="quick" id="fabs" autocomplete="off">
+  <div class="qchips" id="qchips" aria-label="Lo de siempre"></div>
+  <div class="qrow">
+    <input id="qIn" type="text" enterkeyhint="send" autocapitalize="sentences" placeholder="Ej: 4000 panadería" aria-label="Anotar un gasto rápido">
+    <button type="submit" class="qsend" id="qSend" aria-label="Anotar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+    <button type="button" class="qmore" id="fab" aria-label="Cargar con más detalle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  </div>
+</form>
 
 <div id="voiceRoot">
   <div class="scrim" id="vScrim"></div>
@@ -488,8 +518,9 @@ function render(){
   $("mesTitulo").textContent=MESES[m-1]+" "+y;
   renderSummary();renderBanner();
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===tab)));
-  $("fab").textContent=tab==="ingresos"?"+ Ingreso":"+ Gasto";
+  $("fab").setAttribute("aria-label",tab==="ingresos"?"Nuevo ingreso con detalle":"Nuevo gasto con detalle");
   $("fabs").style.display=(tab==="ajustes"||tab==="tarjeta")?"none":"";
+  renderQuickChips();
   ({gastos:renderGastos,categorias:renderCategorias,ingresos:renderIngresos,tarjeta:renderTarjeta,ajustes:renderAjustes})[tab]();
 }
 function renderSummary(){
@@ -516,6 +547,13 @@ function renderSummary(){
 function renderBanner(){
   const vacio=!Object.keys(S.meses).some(k=>{const x=S.meses[k];return x.gastos.length||x.ingresos.length;});
   const cif=!!(window.DATOS_CIFRADOS&&window.crypto&&crypto.subtle);
+  if(!vacio){
+    let ult=null;Object.values(S.meses).forEach(m=>(m.gastos||[]).forEach(g=>{if(g.f&&!g.src&&g.f<=todayStr&&(!ult||g.f>ult))ult=g.f;}));
+    const dias=ult?Math.round((new Date(todayStr+"T12:00:00")-new Date(ult+"T12:00:00"))/86400000):null;
+    $("banner").innerHTML=dias!=null&&dias>=2&&cur===ymOf(hoy)?
+      '<div class="nudge"><span class="nudge-ic" aria-hidden="true">👀</span><span>Hace <b>'+dias+' días</b> que no anotás nada. ¿Te acordás de algún gasto? Escribilo abajo.</span></div>':"";
+    return;
+  }
   $("banner").innerHTML=!vacio?"":cif?
     '<div class="banner"><p><b>Cargá tus gastos</b><br>Escribí tu clave (la que te pasó Claude) una sola vez y aparecen todos tus datos.</p>'+
     '<label>Clave<input id="claveIn" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="palabra palabra palabra palabra 1234"></label>'+
@@ -700,6 +738,63 @@ $("next").onclick=()=>{cur=shiftKey(cur,1);armedClear=false;render();};
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;armedClear=false;render();});
 $("fab").onclick=()=>openSheet(tab==="ingresos"?"ingreso":"gasto");
 
+/* ---------- anotar rápido ---------- */
+function agregarMovs(items,txtOk){
+  const k=ymOf(hoy),m=ensure(k),ids=[];
+  items.forEach(p=>{
+    const id=uid();ids.push(id);
+    if(p.tipo==="ingreso")m.ingresos.push({id,c:p.c,m:p.m});
+    else m.gastos.push({id,cat:p.cat,m:p.m,nota:p.nota||"",f:todayStr});
+  });
+  saveMes(k);
+  if(cur!==k){cur=k;}
+  if(items.every(p=>p.tipo==="ingreso")&&tab==="gastos")tab="ingresos";
+  else if(items.some(p=>p.tipo==="gasto")&&tab!=="gastos"&&tab!=="categorias")tab="gastos";
+  render();
+  toast(txtOk,()=>{
+    const mm=ensure(k);
+    mm.gastos=mm.gastos.filter(x=>!ids.includes(x.id));mm.ingresos=mm.ingresos.filter(x=>!ids.includes(x.id));
+    saveMes(k);render();toast("Listo, lo saqué.");
+  });
+}
+function describir(items){
+  if(items.length>1)return "Anoté "+items.length+" movimientos · "+fmt(items.reduce((s,p)=>s+(p.tipo==="gasto"?p.m:0),0))+" en gastos";
+  const p=items[0];
+  return p.tipo==="ingreso"?"Ingreso anotado: "+fmt(p.m)+" · "+p.c:"Anotado: "+fmt(p.m)+" en "+p.cat+(p.nota&&norm(p.nota)!==norm(p.cat)?" ("+p.nota+")":"");
+}
+$("fabs").addEventListener("submit",e=>{
+  e.preventDefault();
+  const inp=$("qIn"),txt=inp.value.trim();
+  if(!txt){openSheet(tab==="ingresos"?"ingreso":"gasto");return;}
+  const names=S.ajustes.categorias.map(c=>c.n);
+  const items=parseLocal(txt).map(x=>x.tipo==="ingreso"?{tipo:"ingreso",m:Math.round(x.monto),c:String(x.concepto||"Otro").slice(0,60)}
+    :{tipo:"gasto",m:Math.round(x.monto),cat:names.includes(x.categoria)?x.categoria:(names.includes("Otros")?"Otros":names[0]),nota:String(x.nota||"").slice(0,80)});
+  if(!items.length){toast("Me falta el monto. Probá así: “4000 panadería”.");return;}
+  inp.value="";
+  agregarMovs(items,describir(items));
+});
+function frecuentes(){
+  const c={};
+  Object.keys(S.meses).sort().forEach(k=>(S.meses[k].gastos||[]).forEach(g=>{
+    if(g.src==="tj"||!(g.m>0))return;
+    const key=g.cat+"|"+norm(g.nota||"")+"|"+g.m;
+    const x=c[key]||(c[key]={cat:g.cat,nota:g.nota||"",m:g.m,n:0,last:""});
+    x.n++;x.last=k+(g.f||"");
+  }));
+  const all=Object.values(c);
+  const rep=all.filter(x=>x.n>=2).sort((a,b)=>b.n-a.n||b.last.localeCompare(a.last));
+  const chicos=all.filter(x=>x.n<2&&x.m<=20000).sort((a,b)=>b.last.localeCompare(a.last));
+  return rep.concat(chicos).slice(0,8);
+}
+function renderQuickChips(){
+  const el=$("qchips");if(!el)return;
+  if(tab==="ingresos"){el.innerHTML="";return;}
+  const fr=frecuentes();
+  el.innerHTML=fr.map((x,i)=>'<button type="button" class="qchip" data-q="'+i+'">'+catIcon(x.cat)+'<span>'+esc(x.nota||x.cat)+'</span><b class="num">'+fmt(x.m)+'</b></button>').join("");
+  el.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{const x=fr[+b.dataset.q];
+    const it={tipo:"gasto",m:x.m,cat:x.cat,nota:x.nota};agregarMovs([it],describir([it]));});
+}
+
 /* ---------- cargar hablando ---------- */
 let dict=null,sampler=null,pend=[];
 const MIC_SVG=$("vMic").querySelector("svg").outerHTML;
@@ -725,7 +820,7 @@ function closeVoice(){
   if(dict&&dict.active())dict.stop().catch(()=>{});
   $("voiceRoot").classList.remove("open");
 }
-$("micFab").onclick=()=>{openVoice();if(dict)micToggle();else setTimeout(()=>$("vText").focus(),50);};
+{const mf=$("micFab");if(mf)mf.onclick=()=>{openVoice();if(dict)micToggle();else setTimeout(()=>$("vText").focus(),50);};}
 function micToggle(){
   if(!dict)return;
   if(dict.active()){dict.stop().catch(()=>{});return;}
@@ -742,6 +837,18 @@ $("vCancel").onclick=closeVoice;
 
 const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
 const KW=[["super","Supermercado"],["chino","Supermercado"],["almacen","Supermercado"],["nafta","Nafta"],["combustible","Nafta"],["kiosco","Kiosco"],["alquiler","Alquiler"],["tarjeta","Tarjeta"],["luz","Luz"],["gas","Gas"],["ropa","Ropa"],["zapatilla","Ropa"],["colectivo","Transporte"],["sube","Transporte"],["uber","Transporte"],["taxi","Transporte"],["tren","Transporte"],["yerba","Yerba"],["perro","Mascotas"],["gato","Mascotas"],["veterinari","Mascotas"],["mascota","Mascotas"],["balanceado","Mascotas"],["celu","Celular"],["pediatra","Pediatra"],["transferencia","Transferencias"],["mercado pago","MP Crédito"],["comida","Comida y bebida"],["pizza","Comida y bebida"],["delivery","Comida y bebida"],["bebida","Comida y bebida"],["cerveza","Comida y bebida"],["milanesa","Comida y bebida"],["apple","Apple"],["icloud","Apple"],["hormiga","Hormiga"],["panaderia","Hormiga"]];
+function aprendida(np){
+  const score={};
+  const words=np.split(/[^a-z0-9]+/).filter(w=>w.length>=4&&!/^\d+$/.test(w));
+  if(!words.length)return null;
+  Object.values(S.meses).forEach(m=>(m.gastos||[]).forEach(g=>{
+    if(g.src==="tj"||!g.nota)return;
+    const nn=norm(g.nota);
+    words.forEach(w=>{if(nn.split(/[^a-z0-9]+/).includes(w))score[g.cat]=(score[g.cat]||0)+1;});
+  }));
+  const best=Object.entries(score).sort((a,b)=>b[1]-a[1])[0];
+  return best&&S.ajustes.categorias.some(c=>c.n===best[0])?best[0]:null;
+}
 function parseLocal(txt){
   const out=[];
   txt.split(/,|;|\n|\s+y\s+|\.\s/).forEach(p=>{
@@ -757,8 +864,9 @@ function parseLocal(txt){
       out.push({tipo:"ingreso",monto:n,concepto:c});return;
     }
     let cat=S.ajustes.categorias.find(c=>np.includes(norm(c.n)));
-    cat=cat?cat.n:((KW.find(([k])=>np.includes(k))||[])[1]||"Otros");
-    out.push({tipo:"gasto",monto:n,categoria:cat,nota:nota});
+    cat=cat?cat.n:(aprendida(np)||(KW.find(([k])=>np.includes(k))||[])[1]||"Otros");
+    const nt=nota.replace(/\$/g,"").trim();
+    out.push({tipo:"gasto",monto:n,categoria:cat,nota:nt?nt.charAt(0).toUpperCase()+nt.slice(1):""});
   });
   return out;
 }
@@ -1082,7 +1190,9 @@ function renderTarjeta(){
   const ld=$("tjLoad");if(ld)ld.onclick=()=>{cargarTj(cur,r);render();toast("Listo, lo cargué en tus gastos.");};
 }
 
-let tt;function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),3200);}
+let tt;function toast(msg,undo){const t=$("toast");t.innerHTML='<span>'+esc(msg)+'</span>'+(undo?'<button type="button" id="tUndo">Deshacer</button>':'');
+  if(undo)$("tUndo").onclick=()=>{t.classList.remove("show");clearTimeout(tt);undo();};
+  t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),undo?5000:3200);}
 
 const enClaude=!!(window.claude&&typeof window.claude.use==="function");
 if(!enClaude){

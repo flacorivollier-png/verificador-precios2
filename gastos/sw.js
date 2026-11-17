@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Cambiar VERSION cada vez que se modifique la app para que se actualice.
-const VERSION = "gastos-v4";
+const VERSION = "gastos-v5";
 const ARCHIVOS = [
   "./", "./index.html", "./datos.js", "./manifest.webmanifest",
   "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-512-maskable.png"
