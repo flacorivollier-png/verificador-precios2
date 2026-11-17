@@ -34,8 +34,8 @@ const Acceso = (() => {
     return (await huella(clave, c.sal)) === c.hash;
   }
 
-  /* ---------- sesión: se vence a los 30 minutos sin usar la app ---------- */
-  const MINUTOS = 30;
+  /* ---------- sesión: se vence a las 4 horas sin usar la app ---------- */
+  const MINUTOS = 4 * 60;
   const CLAVE_ACTIVIDAD = 'guille-actividad';
   let ultimaActividad = 0;
   let bloqueada = true;
@@ -60,7 +60,7 @@ const Acceso = (() => {
     location.reload();
   }
 
-  /** Vuelve a pedir usuario y contraseña (después de 30 minutos sin uso). */
+  /** Vuelve a pedir usuario y contraseña (después de 4 horas sin uso). */
   function bloquear() {
     if (bloqueada) return;
     bloqueada = true;
@@ -190,7 +190,7 @@ const Acceso = (() => {
       alEntrar = resolve;
       const c = await DB.getMeta('acceso');
       if (c && sesionActiva()) {
-        // usó la app hace menos de 30 minutos: mostrar el logo un momento (tocar para saltear)
+        // usó la app hace menos de 4 horas: mostrar el logo un momento (tocar para saltear)
         let hecho = false;
         const saltar = () => {
           $('#portada').removeEventListener('click', saltar);
