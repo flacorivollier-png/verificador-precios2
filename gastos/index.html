@@ -175,9 +175,9 @@ input[type=text],input[type=date],input[inputmode]{background:var(--bg);border:1
     <button id="next" aria-label="Mes siguiente">›</button>
   </nav>
 
-  <section class="summary" id="summary" aria-live="polite"></section>
-
   <div id="banner"></div>
+
+  <section class="summary" id="summary" aria-live="polite"></section>
 
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="gastos" aria-selected="true">Gastos</button>
@@ -252,6 +252,7 @@ input[type=text],input[type=date],input[inputmode]{background:var(--bg);border:1
 </div>
 <div class="toast" id="toast" role="status"></div>
 
+<script src="datos.js"></script>
 <script>
 (function(){
 "use strict";
@@ -364,6 +365,18 @@ async function importarCopia(file){
   if(!file)return;
   let d;
   try{d=JSON.parse(await file.text());}catch(e){toast("Ese archivo no es una copia válida.");return;}
+  aplicarCopia(d);
+}
+const b64u=s=>Uint8Array.from(atob(s),ch=>ch.charCodeAt(0));
+const normClave=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+async function abrirDatos(clave){
+  const E=window.DATOS_CIFRADOS;
+  const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(normClave(clave)),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64u(E.salt),iterations:E.iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64u(E.iv)},key,b64u(E.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function aplicarCopia(d){
   if(!d||typeof d!=="object"||!d.meses||typeof d.meses!=="object"){toast("Ese archivo no es una copia de Mis gastos.");return;}
   const meses={};
   Object.keys(d.meses).forEach(k=>{if(/^\d{4}-\d{2}$/.test(k)&&d.meses[k]&&typeof d.meses[k]==="object"){
@@ -412,9 +425,24 @@ function renderSummary(){
 }
 function renderBanner(){
   const vacio=!Object.keys(S.meses).some(k=>{const x=S.meses[k];return x.gastos.length||x.ingresos.length;});
-  $("banner").innerHTML=vacio?
-    '<div class="banner"><p><b>¿Venís de la versión de Claude?</b> Importá la copia de seguridad (.json) y aparecen todos tus gastos.</p><span class="filebtn btn"><span>Importar copia</span><input type="file" id="impBanner" accept=".json,application/json" aria-label="Importar copia de seguridad"></span></div>':"";
+  const cif=!!(window.DATOS_CIFRADOS&&window.crypto&&crypto.subtle);
+  $("banner").innerHTML=!vacio?"":cif?
+    '<div class="banner"><p><b>Cargá tus gastos</b><br>Escribí tu clave (la que te pasó Claude) una sola vez y aparecen todos tus datos.</p>'+
+    '<label>Clave<input id="claveIn" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="palabra palabra palabra palabra 1234"></label>'+
+    '<p class="err" id="claveErr"></p><button class="btn" id="claveOk">Cargar mis datos</button>'+
+    '<span class="filebtn btn ghost" style="justify-content:center"><span>O importar una copia (.json)</span><input type="file" id="impBanner" accept=".json,application/json" aria-label="Importar copia de seguridad"></span></div>'
+    :'<div class="banner"><p><b>¿Venís de la versión de Claude?</b> Importá la copia de seguridad (.json) y aparecen todos tus gastos.</p><span class="filebtn btn"><span>Importar copia</span><input type="file" id="impBanner" accept=".json,application/json" aria-label="Importar copia de seguridad"></span></div>';
   const b=$("impBanner");if(b)b.onchange=()=>importarCopia(b.files&&b.files[0]);
+  const ok=$("claveOk");
+  if(ok){
+    const go=async()=>{
+      const v=$("claveIn").value;if(!normClave(v)){$("claveErr").textContent="Escribí la clave.";return;}
+      ok.disabled=true;ok.textContent="Abriendo…";$("claveErr").textContent="";
+      try{aplicarCopia(await abrirDatos(v));}
+      catch(e){ok.disabled=false;ok.textContent="Cargar mis datos";$("claveErr").textContent="Esa clave no es. Revisá las palabras y el número.";}
+    };
+    ok.onclick=go;$("claveIn").onkeydown=e=>{if(e.key==="Enter")go();};
+  }
 }
 function fechaCorta(f){if(!f)return "Planilla";const p=f.split("-");return Number(p[2])+" "+MES_C[Number(p[1])-1];}
 function renderGastos(){
