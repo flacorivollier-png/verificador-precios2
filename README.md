@@ -70,3 +70,5 @@ Queda en `https://<tu-usuario>.github.io/verificador-precios2/gastos/`.
   (también sirve para pasar los datos de la versión de Claude o a otro teléfono).
 - Funciona sin internet una vez instalada (Safari → Compartir → Agregar a pantalla de inicio).
 - La pestaña *Tarjeta* (leer el PDF del resumen) sólo aparece dentro de Claude, porque usa IA.
+- **Anotar rápido:** la barra de abajo siempre está a mano. Escribí o dictá “4000 panadería” y Enter.
+  Los botones de arriba de la barra repiten tus gastos de siempre con un toque, y cada anotación se puede deshacer.
