@@ -103,6 +103,40 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 .conCodigo{display:flex;gap:6px}
 .conCodigo button{padding:10px}
 #reader{width:100%;max-width:360px;margin:10px auto}
+
+/* Lector de etiquetas */
+button.etiqueta{background:var(--sand);color:var(--header)}
+.caja.ancha{max-width:760px}
+.modoMov{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.modoBtn{font-size:18px;padding:14px;background:#cdb795;color:var(--header);opacity:.75}
+.modoBtn.activo.sal{background:var(--danger);color:#fff;opacity:1}
+.modoBtn.activo.ent{background:var(--ok);color:#fff;opacity:1}
+.visor{position:relative;width:100%;margin:0 auto;background:#000;border-radius:12px;overflow:hidden}
+.visor video{width:100%;height:100%;display:block;object-fit:fill}
+.guia{position:absolute;left:8%;right:8%;top:32%;height:36%;border:3px solid #fff;border-radius:10px;
+  box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.guia.ok{border-color:#86efac}
+.estadoOCR{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:rgba(59,42,28,.8);
+  color:#fff;font-size:14px;text-align:center}
+.estadoOCR b{color:#fde68a;font-family:monospace;font-size:15px}
+.linterna{position:absolute;top:8px;right:8px;padding:8px 10px}
+.hallado{display:flex;gap:12px;align-items:center;background:var(--card);border:3px solid var(--accent);
+  border-radius:12px;padding:10px;margin-top:10px}
+.hallado img,.hallado .sinf{width:96px;height:96px;object-fit:contain;background:#fff;border-radius:8px;flex:0 0 auto}
+.hallado .sinf{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.hallado .det{flex:1;min-width:0}
+.hallado .codInt{font-family:monospace;font-size:22px;font-weight:bold}
+.hallado .nom{font-weight:bold}
+.hallado .meta{color:var(--muted);font-size:13px}
+.hallado .cuenta{font-size:18px;margin-top:4px}
+.hallado .botones{display:flex;flex-direction:column;gap:6px}
+.hallado .botones button{font-size:16px;padding:12px 14px}
+.opciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.aviso{background:#f6d9a0;color:var(--header);padding:8px 10px;border-radius:10px;margin-top:8px;font-size:14px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--text);margin:10px 0}
+.chk input{width:auto}
+.etqLog div{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.etqLog button{padding:4px 10px;font-size:12px}
 .mov{display:flex;gap:8px;align-items:end;margin-top:6px}
 .historial{max-height:160px;overflow:auto;font-size:13px;color:var(--muted);margin-top:8px;
   border-top:1px solid var(--border);padding-top:6px}
@@ -147,6 +181,7 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
     <option value="sin">Sin stock</option>
   </select>
   <div class="toolbar">
+    <button class="etiqueta" onclick="abrirEtiqueta()">🏷 Leer etiqueta</button>
     <button onclick="abrirNuevo()">+ Producto</button>
     <button class="sec" onclick="escanearBusqueda()">📷 Escanear</button>
     <button class="sec" onclick="abrir('modalDatos')">⚙ Datos</button>
@@ -241,6 +276,36 @@ label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
     <h3>Escanear código</h3>
     <div id="reader"></div>
     <div class="acciones"><button class="sec" onclick="detenerScanner()">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Modal lector de etiquetas (código interno impreso, ej. MA 90-04) -->
+<div class="modal" id="modalEtiqueta">
+  <div class="caja ancha">
+    <h3>🏷 Leer etiqueta de caja</h3>
+    <div class="modoMov">
+      <button class="modoBtn sal activo" id="modoSalida" onclick="etqModo(-1)">− Salida</button>
+      <button class="modoBtn ent" id="modoEntrada" onclick="etqModo(1)">+ Entrada</button>
+    </div>
+    <div class="fila">
+      <div><label>Cajas por lectura</label><input id="etqCant" type="number" min="1" value="1"></div>
+      <div><label>Buscando en</label><div id="etqDonde" style="padding:10px 0;font-weight:bold"></div></div>
+    </div>
+    <div class="visor" id="etqVisor">
+      <video id="etqVideo" playsinline muted></video>
+      <div class="guia" id="etqGuia"></div>
+      <button class="sec linterna" id="etqLinterna" style="display:none" onclick="etqLinterna()">🔦</button>
+      <div class="estadoOCR" id="etqEstado">Preparando lector…</div>
+    </div>
+    <div id="etqResultado"></div>
+    <label class="chk"><input type="checkbox" id="etqAuto"> Modo rápido: confirmar solo cuando la lectura es exacta</label>
+    <div class="conCodigo">
+      <input id="etqManual" list="listaInternos" placeholder="¿No la lee? Escribí el código, ej: MA 90-04">
+      <button class="sec" onclick="etqBuscarManual()">Buscar</button>
+    </div>
+    <datalist id="listaInternos"></datalist>
+    <div class="historial etqLog" id="etqLog"></div>
+    <div class="acciones"><button class="sec" onclick="cerrarEtiqueta()">Cerrar</button></div>
   </div>
 </div>
 
@@ -687,8 +752,309 @@ $("archivoCSV").addEventListener("change", e=>{
 /* ---------- Inicio ---------- */
 ["buscar","filtroCat","filtroStock"].forEach(id=>$(id).addEventListener("input", render));
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click", e=>{
-  if(e.target===m){ m.id==="modalScanner" ? detenerScanner() : cerrar(m.id); }
+  if(e.target===m){ m.id==="modalScanner" ? detenerScanner() : m.id==="modalEtiqueta" ? cerrarEtiqueta() : cerrar(m.id); }
 }));
+
+/* ---------- Lector de etiquetas impresas (OCR) ----------
+   Lee el código interno impreso en la caja (ej. "MA 90-04") con la cámara,
+   lo compara contra los códigos internos cargados y registra la entrada/salida.
+   Para no fallar: solo acepta códigos que existen, pide la misma lectura en
+   2 cuadros seguidos, corrige confusiones típicas (O/0, I/1, S/5, B/8, Z/2)
+   y siempre muestra el producto antes de mover stock. */
+const etq = {worker:null, stream:null, track:null, activo:false, pausa:false, modo:-1,
+             previo:null, repeticiones:0, bloqueado:null, log:[], linterna:false};
+
+// "Esqueleto" del código: sin espacios ni guiones y con letras confundibles unificadas
+const esqueleto = t => String(t||"").toUpperCase().replace(/[^A-Z0-9]/g,"")
+  .replace(/[OQ]/g,"0").replace(/[IL]/g,"1").replace(/S/g,"5").replace(/B/g,"8").replace(/Z/g,"2");
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length; let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur;
+  }
+  return prev[n];
+}
+
+function etqProductos(){ return productos.filter(p=>p.codigoInterno && (!contSel || contDe(p)===contSel)); }
+
+// Busca en el texto leído el código interno cargado que mejor coincide
+function etqCoincidir(texto){
+  const codigos = {};
+  etqProductos().forEach(p=>{ const k=esqueleto(p.codigoInterno); if(k.length>=3) (codigos[k] ??= []).push(p); });
+  const lineas = String(texto||"").split(/\n+/).map(esqueleto).filter(l=>l.length>=3);
+  if(!lineas.length) return null;
+  const todo = lineas.join("|");
+  // 1) Coincidencia exacta: gana el código más largo contenido en el texto
+  const exactos = Object.keys(codigos).filter(k=>todo.includes(k)).sort((a,b)=>b.length-a.length);
+  if(exactos.length){
+    const largo = exactos[0].length, empatados = exactos.filter(k=>k.length===largo);
+    if(empatados.length===1) return {k:exactos[0], exacto:true, productos:codigos[exactos[0]]};
+    return {ambiguo:empatados.map(k=>({k, productos:codigos[k]}))};
+  }
+  // 2) Coincidencia aproximada (1 carácter de diferencia) para códigos de 5+ caracteres
+  let mejor=[], dMin=2;
+  for(const k of Object.keys(codigos)){
+    if(k.length<5) continue;
+    for(const l of lineas){
+      for(let len=k.length-1; len<=k.length+1; len++){
+        for(let i=0; i+len<=l.length; i++){
+          const d = levenshtein(k, l.substr(i,len));
+          if(d<dMin){ dMin=d; mejor=[k]; } else if(d===dMin && !mejor.includes(k)) mejor.push(k);
+        }
+      }
+    }
+  }
+  if(dMin<=1 && mejor.length===1) return {k:mejor[0], exacto:false, productos:codigos[mejor[0]]};
+  if(dMin<=1 && mejor.length>1) return {ambiguo:mejor.map(k=>({k, productos:codigos[k]}))};
+  return null;
+}
+
+function cargarScript(src){
+  return new Promise((ok,mal)=>{
+    if(document.querySelector(`script[src="${src}"]`)) return ok();
+    const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=()=>mal(new Error("No se pudo cargar "+src));
+    document.head.appendChild(s);
+  });
+}
+
+async function etqPrepararOCR(){
+  if(etq.worker) return;
+  await cargarScript("lib/ocr/tesseract.min.js");
+  const base = new URL("lib/ocr/", location.href).href;
+  etq.worker = await Tesseract.createWorker("eng", 1, {
+    workerPath: base+"worker.min.js", corePath: base, langPath: base.replace(/\/$/,""),
+    gzip: true, workerBlobURL: false, cacheMethod: "none"
+  });
+  await etq.worker.setParameters({
+    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/. ",
+    tessedit_pageseg_mode: "6",
+    preserve_interword_spaces: "1"
+  });
+}
+
+function etqEstado(html){ $("etqEstado").innerHTML = html; }
+
+async function abrirEtiqueta(){
+  if(!productos.some(p=>p.codigoInterno)){ alert("No hay productos con código interno cargado."); return; }
+  $("etqDonde").textContent = contSel ? "📦 "+contSel : "Todos los contenedores";
+  $("listaInternos").innerHTML = [...new Set(etqProductos().map(p=>p.codigoInterno))].sort()
+    .map(c=>`<option value="${esc(c)}">`).join("");
+  try{ $("etqAuto").checked = localStorage.getItem("ibragiu_etq_auto")==="1"; }catch{}
+  $("etqResultado").innerHTML = ""; etqPintarLog();
+  etqModo(etq.modo);
+  abrir("modalEtiqueta");
+  etq.activo = true; etq.pausa = false; etq.previo = null; etq.repeticiones = 0;
+  etqEstado("Abriendo cámara…");
+  try{
+    etq.stream = await navigator.mediaDevices.getUserMedia({audio:false,
+      video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}});
+  }catch(e){
+    etqEstado("No se pudo abrir la cámara. Podés escribir el código abajo."); return;
+  }
+  if(!etq.activo){ etqApagarCamara(); return; }
+  const v = $("etqVideo"); v.srcObject = etq.stream; await v.play().catch(()=>{});
+  etq.track = etq.stream.getVideoTracks()[0];
+  const cap = etq.track.getCapabilities ? etq.track.getCapabilities() : {};
+  if(cap.focusMode && cap.focusMode.includes("continuous"))
+    etq.track.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{});
+  $("etqLinterna").style.display = cap.torch ? "" : "none";
+  const ajustar = ()=>{
+    if(!v.videoWidth) return;
+    const r = v.videoWidth / v.videoHeight;
+    $("etqVisor").style.aspectRatio = `${v.videoWidth} / ${v.videoHeight}`;
+    $("etqVisor").style.maxWidth = `calc(52vh * ${r})`;
+  };
+  v.onloadedmetadata = ajustar; ajustar();
+  etqEstado("Cargando lector de texto…");
+  try{ await etqPrepararOCR(); }
+  catch(e){ etqEstado("No se pudo cargar el lector de texto. Revisá la conexión la primera vez."); return; }
+  etqEstado("Centrá el código de la etiqueta dentro del recuadro");
+  etqCiclo();
+}
+
+function etqModo(m){
+  etq.modo = m;
+  $("modoSalida").classList.toggle("activo", m<0);
+  $("modoEntrada").classList.toggle("activo", m>0);
+  if(etq.pendiente) etqMostrar(etq.pendiente);
+}
+
+async function etqLinterna(){
+  if(!etq.track) return;
+  etq.linterna = !etq.linterna;
+  etq.track.applyConstraints({advanced:[{torch:etq.linterna}]}).catch(()=>{});
+}
+
+function etqApagarCamara(){
+  if(etq.stream) etq.stream.getTracks().forEach(t=>t.stop());
+  etq.stream = null; etq.track = null; etq.linterna = false;
+  $("etqVideo").srcObject = null;
+}
+
+function cerrarEtiqueta(){
+  etq.activo = false; etq.pendiente = null;
+  etqApagarCamara();
+  cerrar("modalEtiqueta");
+}
+
+// Recorta la zona del recuadro y la prepara (gris + contraste) para leer mejor
+function etqCapturar(){
+  const v = $("etqVideo"); if(!v.videoWidth) return null;
+  const sx = v.videoWidth*.08, sy = v.videoHeight*.32, sw = v.videoWidth*.84, sh = v.videoHeight*.36;
+  const escala = Math.min(2, 1400/sw);
+  const c = document.createElement("canvas");
+  c.width = Math.round(sw*escala); c.height = Math.round(sh*escala);
+  const ctx = c.getContext("2d", {willReadFrequently:true});
+  ctx.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  const img = ctx.getImageData(0,0,c.width,c.height), d = img.data;
+  let min=255, max=0;
+  for(let i=0;i<d.length;i+=4){
+    const g = d[i]*.299 + d[i+1]*.587 + d[i+2]*.114; d[i]=g;
+    if(g<min) min=g; if(g>max) max=g;
+  }
+  const k = 255/Math.max(40, max-min);
+  for(let i=0;i<d.length;i+=4){ const g=(d[i]-min)*k; d[i]=d[i+1]=d[i+2]=g; }
+  ctx.putImageData(img,0,0);
+  return c;
+}
+
+async function etqCiclo(){
+  while(etq.activo){
+    if(!etq.pausa && etq.worker){
+      const c = etqCapturar();
+      if(c){
+        try{
+          const {data} = await etq.worker.recognize(c);
+          if(etq.activo && !etq.pausa) etqProcesar(data.text);
+        }catch(e){}
+      }
+    }
+    await new Promise(r=>setTimeout(r,120));
+  }
+}
+
+function etqProcesar(texto){
+  const r = etqCoincidir(texto);
+  const visto = (texto||"").replace(/\s+/g," ").trim().slice(0,40);
+  // Evitar contar dos veces la misma caja: el código queda bloqueado hasta que deje de verse
+  if(etq.bloqueado){
+    if(r && r.k===etq.bloqueado.k){ etq.bloqueado.visto = Date.now(); etqEstado("✔ Registrado. Pasá a la próxima caja"); return; }
+    if(Date.now()-etq.bloqueado.visto > 1200) etq.bloqueado = null;
+  }
+  if(!r){
+    etq.previo = null; etq.repeticiones = 0; $("etqGuia").classList.remove("ok");
+    etqEstado(visto ? `Leyendo… <b>${esc(visto)}</b>` : "Centrá el código de la etiqueta dentro del recuadro");
+    return;
+  }
+  // Lectura parcial que coincide con varios códigos (ej. "MA 90-0"): seguir leyendo
+  if(r.ambiguo){
+    etq.previo = null; etq.repeticiones = 0;
+    etqEstado(`Acercá un poco o centrá mejor… <b>${esc(visto)}</b>`); return;
+  }
+  const clave = r.k;
+  etq.repeticiones = etq.previo===clave ? etq.repeticiones+1 : 1;
+  etq.previo = clave;
+  $("etqGuia").classList.add("ok");
+  if(etq.repeticiones < 2){ etqEstado(`Confirmando… <b>${esc(visto)}</b>`); return; }
+  etq.pausa = true; etq.previo = null; etq.repeticiones = 0;
+  if(navigator.vibrate) navigator.vibrate(80);
+  etqMostrar(r);
+}
+
+function etqMostrar(r){
+  etq.pendiente = r;
+  const cant = Math.max(1, parseInt($("etqCant").value)||1);
+  if(r.ambiguo || r.productos.length>1){
+    const ops = r.ambiguo ? r.ambiguo.flatMap(a=>a.productos) : r.productos;
+    etqEstado("Hay más de una opción, elegí la correcta");
+    $("etqResultado").innerHTML = `<div class="aviso">La etiqueta coincide con más de un producto. Tocá el correcto:</div>
+      <div class="opciones">${ops.map(p=>`<button class="sec" onclick="etqElegir('${p.id}')">${esc(p.codigoInterno)} · ${esc(p.nombre||"")} · 📦 ${esc(contDe(p))}</button>`).join("")}
+      <button class="danger" onclick="etqDescartar()">Ninguno</button></div>`;
+    return;
+  }
+  const p = r.productos[0], actual = +p.stockCajas||0, despues = actual + etq.modo*cant;
+  const falta = etq.modo<0 && despues<0;
+  if($("etqAuto").checked && r.exacto && !falta){ etqAplicar(p.id); return; }
+  etqEstado(r.exacto ? "Etiqueta leída" : "Lectura aproximada: verificá que sea el producto correcto");
+  $("etqResultado").innerHTML = `<div class="hallado">
+    ${p.foto ? `<img src="${p.foto}" alt="">` : `<div class="sinf">Sin foto</div>`}
+    <div class="det">
+      <div class="codInt">${esc(p.codigoInterno)}</div>
+      <div class="nom">${esc(p.nombre||"")}</div>
+      <div class="meta">📦 ${esc(contDe(p))} · ${esc(catDe(p))}</div>
+      <div class="cuenta">${actual} → <b>${despues}</b> cajas</div>
+      ${!r.exacto ? `<div class="aviso">Leyó algo parecido. Confirmá que la etiqueta diga <b>${esc(p.codigoInterno)}</b>.</div>` : ""}
+      ${falta ? `<div class="aviso">No alcanza el stock: hay ${actual} cajas.</div>` : ""}
+    </div>
+    <div class="botones">
+      <button class="${etq.modo<0?"danger":""}" style="${etq.modo>0?"background:var(--ok)":""}" onclick="etqAplicar('${p.id}')">
+        ${etq.modo<0?"− Salida":"+ Entrada"} ${cant} ${cant===1?"caja":"cajas"}</button>
+      <button class="sec" onclick="etqDescartar()">No es este</button>
+    </div>
+  </div>`;
+}
+
+function etqElegir(id){
+  const p = productos.find(x=>x.id===id); if(!p) return;
+  etqMostrar({k:esqueleto(p.codigoInterno), exacto:true, productos:[p]});
+}
+
+function etqDescartar(){
+  etq.pendiente = null; $("etqResultado").innerHTML = "";
+  etq.pausa = false; etqEstado("Centrá el código de la etiqueta dentro del recuadro");
+}
+
+async function etqAplicar(id){
+  const p = productos.find(x=>x.id===id); if(!p) return;
+  const cant = Math.max(1, parseInt($("etqCant").value)||1), cajas = etq.modo*cant;
+  if(cajas<0 && (+p.stockCajas||0)+cajas<0 &&
+     !confirm(`Hay ${+p.stockCajas||0} cajas de ${p.codigoInterno}. ¿Registrar la salida igual?`)) return;
+  const mov = {fecha:Date.now(), cajas, nota:"Lectura de etiqueta"};
+  p.stockCajas = (+p.stockCajas||0) + cajas;
+  (p.movimientos ??= []).push(mov);
+  await dbGuardar(p);
+  etq.log.unshift({id:p.id, fecha:mov.fecha, cajas, codigo:p.codigoInterno, nombre:p.nombre, stock:p.stockCajas});
+  etq.bloqueado = {k:esqueleto(p.codigoInterno), visto:Date.now()};
+  etq.pendiente = null; $("etqResultado").innerHTML = "";
+  etqPintarLog(); render();
+  if(navigator.vibrate) navigator.vibrate([60,60,60]);
+  etqEstado(`✔ ${cajas>0?"+":""}${cajas} ${p.codigoInterno} · quedan ${p.stockCajas} cajas`);
+  etq.pausa = false;
+}
+
+async function etqDeshacer(fecha){
+  const e = etq.log.find(x=>x.fecha===fecha); if(!e) return;
+  const p = productos.find(x=>x.id===e.id);
+  if(p){
+    p.stockCajas = (+p.stockCajas||0) - e.cajas;
+    p.movimientos = (p.movimientos||[]).filter(m=>m.fecha!==fecha);
+    await dbGuardar(p);
+  }
+  etq.log = etq.log.filter(x=>x!==e);
+  etqPintarLog(); render();
+}
+
+function etqPintarLog(){
+  $("etqLog").innerHTML = etq.log.length ? etq.log.slice(0,30).map(e=>
+    `<div><span><span class="${e.cajas>0?"ent":"sal"}">${e.cajas>0?"+":""}${e.cajas}</span>
+      <b>${esc(e.codigo)}</b> ${esc(e.nombre||"")} · quedan ${e.stock} · ${new Date(e.fecha).toLocaleTimeString("es-AR")}</span>
+      <button class="sec" onclick="etqDeshacer(${e.fecha})">Deshacer</button></div>`).join("")
+    : "<div>Las lecturas de esta sesión aparecen acá.</div>";
+}
+
+function etqBuscarManual(){
+  const t = $("etqManual").value.trim(); if(!t) return;
+  const r = etqCoincidir(t);
+  if(!r){ alert(`No hay ningún producto con el código interno "${t}"${contSel?" en "+contSel:""}.`); return; }
+  etq.pausa = true; $("etqManual").value = "";
+  etqMostrar(r.ambiguo ? r : {...r, exacto:true});
+}
+$("etqManual").addEventListener("keydown", e=>{ if(e.key==="Enter") etqBuscarManual(); });
+$("etqAuto").addEventListener("change", e=>{ try{ localStorage.setItem("ibragiu_etq_auto", e.target.checked?"1":"0"); }catch{} });
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && etq.activo) cerrarEtiqueta(); });
 
 /* ---------- App instalable (Android / tablet) ---------- */
 let eventoInstalar = null;
