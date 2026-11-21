@@ -4,11 +4,12 @@
  * Compartir del iPhone → "Imprimir" (AirPrint) o la app HP Smart.
  * (window.print() no funciona en las apps agregadas a la pantalla de inicio del iPhone.) */
 const Etiquetas = (() => {
-  const POR_HOJA = 14;              // 2 columnas × 7 filas
+  const POR_HOJA = 18;              // 2 columnas × 9 filas
   const MM = 240 / 25.4;            // 240 dpi → píxeles por milímetro
   const A4 = { w: 210, h: 297 };
-  const ET = { w: 96, h: 38 };      // etiqueta, en mm
-  const MARGEN = { x: 8, y: 6 }, SEP = { x: 2, y: 2.5 };
+  const ET = { w: 75, h: 30 };      // etiqueta, en mm (7,5 × 3 cm)
+  const SEP = { x: 3, y: 2 };
+  const MARGEN = { x: (A4.w - 2 * ET.w - SEP.x) / 2, y: (A4.h - 9 * ET.h - 8 * SEP.y) / 2 };
   const FUENTE = 'Helvetica, Arial, sans-serif';
 
   let cola = [];                    // [{ codigo, nombre, precio, precioTexto }]
@@ -121,9 +122,9 @@ const Etiquetas = (() => {
 
     // nombre: hasta 2 líneas, achica la letra si no entra
     const nombre = String(d.nombre || '').toUpperCase();
-    const anchoTexto = W - 6;
-    let tam = 15, lineas;
-    for (; tam >= 8; tam -= 0.5) {
+    const anchoTexto = W - 5;
+    let tam = 12, lineas;
+    for (; tam >= 7; tam -= 0.5) {
       ctx.font = `${pt(tam)}px ${FUENTE}`;
       lineas = partirLineas(ctx, nombre, anchoTexto);
       if (lineas.length <= 2 && lineas.every(l => ctx.measureText(l).width <= anchoTexto)) break;
@@ -132,49 +133,49 @@ const Etiquetas = (() => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     const alto = pt(tam) * 1.1;
-    lineas.forEach((l, i) => ctx.fillText(l, W / 2, 2.6 + i * alto, anchoTexto));
-    const bajoNombre = 2.6 + lineas.length * alto;
+    lineas.forEach((l, i) => ctx.fillText(l, W / 2, 2 + i * alto, anchoTexto));
+    const bajoNombre = 2 + lineas.length * alto;
 
     // X 1 y código
-    const yFila = Math.max(bajoNombre + 1, 9);
+    const yFila = Math.max(bajoNombre + 0.8, 7);
     ctx.textAlign = 'left';
-    ctx.font = `bold ${pt(14)}px ${FUENTE}`;
-    ctx.fillText('X  1', 24, yFila);
+    ctx.font = `bold ${pt(11)}px ${FUENTE}`;
+    ctx.fillText('X  1', 18, yFila);
     ctx.textAlign = 'right';
-    ctx.font = `${pt(9)}px ${FUENTE}`;
-    ctx.fillText(d.codigo, W - 3, yFila);
+    ctx.font = `${pt(7.5)}px ${FUENTE}`;
+    ctx.fillText(d.codigo, W - 2.5, yFila);
 
     // logo abajo a la izquierda
-    const yZona = yFila + pt(14) + 1.2;          // donde empieza la zona de logo y precio
-    const baseLinea = H - 3.5;
+    const yZona = yFila + pt(11) + 1;          // donde empieza la zona de logo y precio
+    const baseLinea = H - 2.8;
     let anchoLogo = 0;
     if (logo) {
       const altoMax = baseLinea - yZona;
-      anchoLogo = Math.min(36, altoMax * logo.width / logo.height);
+      anchoLogo = Math.min(27, altoMax * logo.width / logo.height);
       const altoLogo = anchoLogo * logo.height / logo.width;
-      ctx.drawImage(logo, 3, baseLinea - altoLogo, anchoLogo, altoLogo);
+      ctx.drawImage(logo, 2.5, baseLinea - altoLogo, anchoLogo, altoLogo);
     }
 
     // precio grande a la derecha, achicado si se pisa con el logo
     const precio = textoPrecio(d);
-    const anchoPrecio = W - 3 - (anchoLogo ? 3 + anchoLogo + 2 : 3);
-    let tp = 34;
+    const anchoPrecio = W - 2.5 - (anchoLogo ? 2.5 + anchoLogo + 1.5 : 2.5);
+    let tp = 27;
     ctx.font = `bold ${pt(tp)}px ${FUENTE}`;
     const medido = ctx.measureText(precio).width;
     if (medido > anchoPrecio) { tp = tp * anchoPrecio / medido; ctx.font = `bold ${pt(tp)}px ${FUENTE}`; }
     ctx.textAlign = 'right';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText(precio, W - 3, baseLinea);
+    ctx.fillText(precio, W - 2.5, baseLinea);
 
     // fecha sobre la línea de abajo
-    ctx.font = `${pt(8)}px ${FUENTE}`;
+    ctx.font = `${pt(6.5)}px ${FUENTE}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const anchoFecha = ctx.measureText(fecha).width;
     ctx.fillStyle = '#fff';
-    ctx.fillRect(30, H - 1.6, anchoFecha + 3, 3.2);
+    ctx.fillRect(22, H - 1.4, anchoFecha + 3, 2.8);
     ctx.fillStyle = '#000';
-    ctx.fillText(fecha, 31.5, H + 0.1);
+    ctx.fillText(fecha, 23.5, H + 0.1);
     ctx.restore();
   }
 

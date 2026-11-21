@@ -13,7 +13,7 @@ Funciona sin internet una vez instalada y guarda todo en el teléfono.
   (una por línea, `Marca: Arcor`) y marcarlo como ★ destacado.
   **Las fichas se conservan cuando actualizás la lista de precios.**
 - **Etiquetas de precio** en hoja A4: desde cada producto, *🏷️ Agregar a la hoja de precios*.
-  Se acumulan de a 14 por hoja (2 × 7, de 96 × 38 mm) y en la pestaña 🏷️ Etiquetas se ven e imprimen
+  Se acumulan de a 18 por hoja (2 × 9, de 75 × 30 mm) y en la pestaña 🏷️ Etiquetas se ven e imprimen
   como PDF desde el menú Compartir → Imprimir (AirPrint) o la app HP Smart.
   (`window.print()` no funciona en el iPhone con la app instalada en la pantalla de inicio.)
 - **Copia de seguridad** de las fichas (con fotos) en archivos `.json` para guardar en Archivos/iCloud
