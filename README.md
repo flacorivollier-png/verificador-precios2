@@ -14,7 +14,8 @@ Funciona sin internet una vez instalada y guarda todo en el teléfono.
   **Las fichas se conservan cuando actualizás la lista de precios.**
 - **Etiquetas de precio** en hoja A4: desde cada producto, *🏷️ Agregar a la hoja de precios*.
   Se acumulan de a 14 por hoja (2 × 7, de 96 × 38 mm) y en la pestaña 🏷️ Etiquetas se ven e imprimen
-  con el diálogo del sistema (AirPrint, o guardar/compartir como PDF hacia la app de la impresora).
+  como PDF desde el menú Compartir → Imprimir (AirPrint) o la app HP Smart.
+  (`window.print()` no funciona en el iPhone con la app instalada en la pantalla de inicio.)
 - **Copia de seguridad** de las fichas (con fotos) en archivos `.json` para guardar en Archivos/iCloud
   o pasar a otro teléfono:
   - *Copia de lo nuevo*: sólo lo agregado o cambiado desde la última copia (rápida, para hacer seguido).

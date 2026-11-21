@@ -1,5 +1,5 @@
 /* Verificador de precios — lógica principal */
-const VERSION_APP = '1.1.0';
+const VERSION_APP = '1.2.0';
 
 const $ = sel => document.querySelector(sel);
 
