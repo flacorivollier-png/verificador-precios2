@@ -138,9 +138,9 @@ const Etiquetas = (() => {
 
     // X 1 y código
     const yFila = Math.max(bajoNombre + 0.8, 7);
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.font = `bold ${pt(11)}px ${FUENTE}`;
-    ctx.fillText('X  1', 18, yFila);
+    ctx.fillText('X  1', W / 2, yFila);
     ctx.textAlign = 'right';
     ctx.font = `${pt(7.5)}px ${FUENTE}`;
     ctx.fillText(d.codigo, W - 2.5, yFila);
