@@ -1,5 +1,5 @@
 /* Verificador de precios — lógica principal */
-const VERSION_APP = '1.0.0';
+const VERSION_APP = '1.1.0';
 
 const $ = sel => document.querySelector(sel);
 
@@ -169,6 +169,7 @@ function indexarProductos(lista) {
 async function cargarTodo() {
   $('#estadoBase').textContent = 'Cargando…';
   await cargarConfigPrecios();
+  await Etiquetas.cargar();
   const [lista, listaFichas] = await Promise.all([DB.todos('productos'), DB.todos('fichas')]);
   indexarProductos(lista);
   fichas = new Map(listaFichas.map(f => [f.codigo, f]));
@@ -292,6 +293,7 @@ async function mostrarProducto(p) {
     h('button', { class: 'btn btn-whatsapp', type: 'button', onclick: () => compartir(p, archivoFoto) }, '💬 Compartir'),
     h('button', { class: 'btn btn-gris', type: 'button', onclick: () => abrirFicha(p.codigo) },
       f ? '✏️ Editar' : '➕ Foto / datos')));
+  tarjeta.append(h('button', { class: 'btn btn-azul btn-etiqueta', type: 'button', onclick: () => Etiquetas.agregar(p) }, '🏷️ Agregar a la hoja de precios'));
   $('#resultado').append(tarjeta);
 
   if (f && f.tieneFoto) {
@@ -429,6 +431,7 @@ function irA(vista) {
   document.querySelectorAll('.vista').forEach(v => v.classList.toggle('activa', v.id === 'vista-' + vista));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activa', t.dataset.vista === vista));
   if (vista !== 'consultar') cerrarScanner();
+  if (vista === 'etiquetas') Etiquetas.render();
   if (vista === 'fichas') mostrarSolapaFichas($('#segParaFoto').classList.contains('activo') ? 'foto' : 'ficha');
 }
 
@@ -878,6 +881,7 @@ function conectarEventos() {
   let filtroTimer;
   $('#filtroFichas').addEventListener('input', () => { clearTimeout(filtroTimer); filtroTimer = setTimeout(renderFichas, 250); });
   $('#inputBackup').addEventListener('change', importarFichas);
+  Etiquetas.conectar();
   // apagar la cámara si la app pasa a segundo plano
   document.addEventListener('visibilitychange', () => { if (document.hidden) cerrarScanner(); });
   document.addEventListener('acceso-bloqueado', () => cerrarScanner());
