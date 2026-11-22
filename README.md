@@ -12,6 +12,8 @@ Funciona sin internet una vez instalada y guarda todo en el teléfono.
 - **Fichas**: a cualquier producto le podés agregar foto, descripción, características
   (una por línea, `Marca: Arcor`) y marcarlo como ★ destacado.
   **Las fichas se conservan cuando actualizás la lista de precios.**
+- **Sumar productos**: desde cada producto, *➕ Sumar a la cuenta*. En la pestaña 🧮 Sumar se ve el total
+  (y en efectivo), se cambian cantidades con − / + y se puede enviar por WhatsApp.
 - **Etiquetas de precio** en hoja A4: desde cada producto, *🏷️ Agregar a la hoja de precios*.
   Se acumulan de a 18 por hoja (2 × 9, de 75 × 30 mm) y en la pestaña 🏷️ Etiquetas se ven e imprimen
   como PDF desde el menú Compartir → Imprimir (AirPrint) o la app HP Smart.
