@@ -1,6 +1,6 @@
 // Guarda la app en el dispositivo para que funcione sin internet.
 // Cambiar VERSION cada vez que se modifique la app para que se actualice.
-const VERSION = "ibragiu-v9";
+const VERSION = "ibragiu-v10";
 const ARCHIVOS = [
   "./", "./index.html", "./manifest.json", "./logo.png",
   "./lib/JsBarcode.all.min.js", "./lib/html5-qrcode.min.js",

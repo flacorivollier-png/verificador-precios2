@@ -978,7 +978,7 @@ async function etqLeer(zona){
   await etqPsm("6");
   const {data} = await etq.worker.recognize(chica);
   const lineas = (data.lines||[]).filter(l=>l.text && l.text.trim());
-  const elegida = lineas.find(l=>/C[O0]D/i.test(l.text)) || lineas.find(l=>etqCoincidir(l.text))
+  const elegida = lineas.find(l=>ROTULO_CODIGO.test(l.text.toUpperCase())) || lineas.find(l=>etqCoincidir(l.text))
                || lineas.find(l=>etqExtraerCodigo(l.text));
   if(!elegida || !elegida.baseline || !elegida.baseline.has_baseline) return {texto:data.text, doble:false};
   const b = elegida.bbox, bl = elegida.baseline;
@@ -1192,7 +1192,10 @@ function etqPintarLog(){
 }
 
 /* ---------- Códigos nuevos (que todavía no están cargados) ---------- */
-// Saca el código de la etiqueta. Primero busca el rótulo "Código:/Codingo:/Code:",
+// Rótulo que precede al código en la etiqueta: "Código:", "CÓDIGO", "Codigo", "Cód.", "Code",
+// "Art.", "Item No". Tolera la Ó leída como O/0/6/Q o perdida ("CDIGO") y letras de más.
+const ROTULO_CODIGO = /(?:C[OÓÒ0Q6]?D[A-ZÍÓ]*|ART[A-ZÍ]*|ITEM\s*N[O0º°]?)\s*[:.;]?\s*/;
+// Saca el código de la etiqueta. Primero busca el rótulo (ver ROTULO_CODIGO),
 // si no, algo con forma de código: letras + números + guion + números (ej. MA103-27, MA 90-04)
 function etqExtraerCodigo(texto){
   const T = String(texto||"").toUpperCase();
@@ -1205,7 +1208,7 @@ function etqExtraerCodigo(texto){
   };
   const patron = /\b([A-Z]{1,4})( ?)([0-9OQDILSBZ]{1,5}) ?[-–] ?([0-9OQDILSBZ]{1,5})\b/;
   for(const l of T.split(/\n+/)){
-    const m = l.match(/C[O0]D[A-Z]*\s*[:.]?\s*(.+)$/);
+    const m = l.match(new RegExp(ROTULO_CODIGO.source + "(.+)$"));
     if(m){ const c = m[1].match(patron); if(c && /\d/.test(c[3]+c[4])) return normal(c[1],c[2],c[3],c[4]); }
   }
   const c = T.replace(/\n/g," ").match(patron);
