@@ -121,6 +121,9 @@ button.etiqueta{background:var(--sand);color:var(--header)}
   color:#fff;font-size:14px;text-align:center}
 .estadoOCR b{color:#fde68a;font-family:monospace;font-size:15px}
 .linterna{position:absolute;top:8px;right:8px;padding:8px 10px}
+.zoomBox{position:absolute;top:8px;left:8px;right:64px;display:flex;align-items:center;gap:6px;
+  background:rgba(59,42,28,.6);color:#fff;border-radius:10px;padding:4px 10px}
+.zoomBox input{flex:1;padding:0;background:transparent;border:none}
 .hallado{display:flex;gap:12px;align-items:center;background:var(--card);border:3px solid var(--accent);
   border-radius:12px;padding:10px;margin-top:10px}
 .hallado img,.hallado .sinf{width:96px;height:96px;object-fit:contain;background:#fff;border-radius:8px;flex:0 0 auto}
@@ -298,6 +301,7 @@ button.etiqueta{background:var(--sand);color:var(--header)}
       <video id="etqVideo" playsinline muted></video>
       <div class="guia" id="etqGuia"></div>
       <button class="sec linterna" id="etqLinterna" style="display:none" onclick="etqLinterna()">🔦</button>
+      <div class="zoomBox" style="display:none">🔍 <input type="range" id="etqZoom"></div>
       <div class="estadoOCR" id="etqEstado">Preparando lector…</div>
     </div>
     <div id="etqResultado"></div>
@@ -824,19 +828,28 @@ function cargarScript(src){
   });
 }
 
-async function etqPrepararOCR(){
-  if(etq.worker) return;
+function etqPrepararOCR(){
+  // Una sola carga aunque se llame varias veces (precarga + apertura del lector)
+  if(!etq.cargando) etq.cargando = etqCrearWorker().catch(e=>{ etq.cargando = null; throw e; });
+  return etq.cargando;
+}
+async function etqCrearWorker(){
   await cargarScript("lib/ocr/tesseract.min.js");
   const base = new URL("lib/ocr/", location.href).href;
-  etq.worker = await Tesseract.createWorker("eng", 1, {
+  const w = await Tesseract.createWorker("eng", 1, {
     workerPath: base+"worker.min.js", corePath: base, langPath: base.replace(/\/$/,""),
     gzip: true, workerBlobURL: false, cacheMethod: "none"
+  }, {
+    // Sin diccionario de inglés: los códigos no son palabras y el diccionario los "corrige" mal
+    load_system_dawg: "0", load_freq_dawg: "0"
   });
+  etq.worker = w;
   await etq.worker.setParameters({
     tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-/.: ",
     tessedit_pageseg_mode: "6",
     preserve_interword_spaces: "1"
   });
+  etq.psm = "6";
 }
 
 function etqEstado(html){ $("etqEstado").innerHTML = html; }
@@ -850,8 +863,12 @@ async function abrirEtiqueta(){
   $("etqResultado").innerHTML = ""; etqPintarLog();
   etqModo(etq.modo);
   abrir("modalEtiqueta");
-  etq.activo = true; etq.pausa = false; etq.previo = null; etq.repeticiones = 0;
+  etq.activo = true; etq.pausa = false; etq.previo = null; etq.repeticiones = 0; etq.linea = null; etq.miniatura = null;
+  etq.bloqueado = null; etq.movimiento = 0;
+  try{ localStorage.setItem("ibragiu_ocr_usado","1"); }catch{}
   etqEstado("Abriendo cámara…");
+  const preparando = etqPrepararOCR();   // se carga en paralelo con la cámara
+  preparando.catch(()=>{});
   try{
     etq.stream = await navigator.mediaDevices.getUserMedia({audio:false,
       video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}});
@@ -865,6 +882,15 @@ async function abrirEtiqueta(){
   if(cap.focusMode && cap.focusMode.includes("continuous"))
     etq.track.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{});
   $("etqLinterna").style.display = cap.torch ? "" : "none";
+  // Zoom de cámara (si la tablet lo permite): ayuda a leer etiquetas sin acercarse tanto
+  const zoom = $("etqZoom");
+  if(cap.zoom && cap.zoom.max > cap.zoom.min){
+    zoom.min = cap.zoom.min; zoom.max = Math.min(cap.zoom.max, cap.zoom.min*4); zoom.step = cap.zoom.step || 0.1;
+    let guardado = null; try{ guardado = parseFloat(localStorage.getItem("ibragiu_zoom")); }catch{}
+    zoom.value = guardado && guardado>=+zoom.min && guardado<=+zoom.max ? guardado : cap.zoom.min;
+    etq.track.applyConstraints({advanced:[{zoom:+zoom.value}]}).catch(()=>{});
+    zoom.parentElement.style.display = "";
+  } else zoom.parentElement.style.display = "none";
   const ajustar = ()=>{
     if(!v.videoWidth) return;
     const r = v.videoWidth / v.videoHeight;
@@ -872,8 +898,8 @@ async function abrirEtiqueta(){
     $("etqVisor").style.maxWidth = `calc(52vh * ${r})`;
   };
   v.onloadedmetadata = ajustar; ajustar();
-  etqEstado("Cargando lector de texto…");
-  try{ await etqPrepararOCR(); }
+  if(!etq.worker) etqEstado("Cargando lector de texto…");
+  try{ await preparando; }
   catch(e){ etqEstado("No se pudo cargar el lector de texto. Revisá la conexión la primera vez."); return; }
   etqEstado("Centrá el código de la etiqueta dentro del recuadro");
   etqCiclo();
@@ -909,7 +935,8 @@ function etqCapturar(completo=false){
   const v = $("etqVideo"); if(!v.videoWidth) return null;
   const [sx,sy,sw,sh] = completo ? [0,0,v.videoWidth,v.videoHeight]
     : [v.videoWidth*.08, v.videoHeight*.32, v.videoWidth*.84, v.videoHeight*.36];
-  const escala = Math.min(2, 1400/sw);
+  // Resolución nativa (sin agrandar): la 1ª pasada se achica y la 2ª recorta de acá con detalle
+  const escala = Math.min(1, 1600/sw);
   const c = document.createElement("canvas");
   c.width = Math.round(sw*escala); c.height = Math.round(sh*escala);
   const ctx = c.getContext("2d", {willReadFrequently:true});
@@ -926,37 +953,77 @@ function etqCapturar(completo=false){
   return c;
 }
 
-// Lectura en 2 pasos: 1) lee la zona y ubica la línea del código; 2) endereza esa línea
-// (las etiquetas suelen estar pegadas torcidas) y la vuelve a leer más grande y nítida.
+// Lectura en 2 pasos:
+// 1) lee la zona achicada (rápido) y ubica la línea del código;
+// 2) endereza esa línea (las etiquetas suelen estar torcidas) y la lee en buena resolución.
+// Si las dos lecturas dan el mismo código, se confirma en el mismo cuadro.
+// La línea queda "seguida": en los cuadros siguientes solo se lee esa franja (mucho más rápido).
+const etqClave = t => { if(!t) return null; const r = etqCoincidir(t);
+  if(r && !r.ambiguo) return r.k; if(r) return null; const n = etqExtraerCodigo(t); return n ? "N:"+esqueleto(n) : null; };
+
 async function etqLeer(zona){
-  await etq.worker.setParameters({tessedit_pageseg_mode:"6"});
-  const {data} = await etq.worker.recognize(zona);
+  // Camino rápido: releer la línea encontrada en el cuadro anterior
+  if(etq.linea && Date.now()-etq.linea.t < 2500){
+    const t = await etqLeerLinea(zona, etq.linea);
+    if(t && etqClave(t)){ etq.linea.t = Date.now(); return {texto:t, doble:false}; }
+    etq.linea = null;
+  }
+  const f = Math.min(1, 900/zona.width);
+  let chica = zona;
+  if(f < 1){
+    chica = document.createElement("canvas");
+    chica.width = Math.round(zona.width*f); chica.height = Math.round(zona.height*f);
+    const cx = chica.getContext("2d"); cx.imageSmoothingQuality = "high"; cx.drawImage(zona,0,0,chica.width,chica.height);
+  }
+  await etqPsm("6");
+  const {data} = await etq.worker.recognize(chica);
   const lineas = (data.lines||[]).filter(l=>l.text && l.text.trim());
   const elegida = lineas.find(l=>/C[O0]D/i.test(l.text)) || lineas.find(l=>etqCoincidir(l.text))
                || lineas.find(l=>etqExtraerCodigo(l.text));
-  if(!elegida || !elegida.baseline || !elegida.baseline.has_baseline) return data.text;
-  try{
-    const b = elegida.bbox, bl = elegida.baseline;
-    const ang = Math.atan2(bl.y1-bl.y0, bl.x1-bl.x0);
-    if(Math.abs(ang) > 0.35) return data.text;
-    const w = b.x1-b.x0, alto = Math.max(16, (b.y1-b.y0) - Math.abs(Math.tan(ang))*w);
-    const cx = (b.x0+b.x1)/2, cy = (b.y0+b.y1)/2;
-    const esc2 = Math.max(1, Math.min(3, 70/alto));
-    const c = document.createElement("canvas");
-    c.width = Math.round((w/Math.cos(ang) + alto)*esc2); c.height = Math.round(alto*2.2*esc2);
-    const ctx = c.getContext("2d", {willReadFrequently:true});
-    ctx.fillStyle = "#fff"; ctx.fillRect(0,0,c.width,c.height);
-    ctx.imageSmoothingQuality = "high";
-    ctx.translate(c.width/2, c.height/2); ctx.scale(esc2, esc2); ctx.rotate(-ang);
-    ctx.drawImage(zona, -cx, -cy);
-    etqEnfocar(c);
-    await etq.worker.setParameters({tessedit_pageseg_mode:"7"});
-    const r2 = await etq.worker.recognize(c);
-    const t2 = (r2.data.text||"").trim();
-    // Si la línea enderezada da un código, se usa esa lectura (es la más confiable)
-    if(t2 && (etqCoincidir(t2) || etqExtraerCodigo(t2))) return t2;
-  }catch(e){}
-  return data.text;
+  if(!elegida || !elegida.baseline || !elegida.baseline.has_baseline) return {texto:data.text, doble:false};
+  const b = elegida.bbox, bl = elegida.baseline;
+  const ang = Math.atan2(bl.y1-bl.y0, bl.x1-bl.x0);
+  if(Math.abs(ang) > 0.35) return {texto:data.text, doble:false};
+  const w = (b.x1-b.x0)/f, altoBox = (b.y1-b.y0)/f;
+  const linea = {cx:(b.x0+b.x1)/2/f, cy:(b.y0+b.y1)/2/f, w, ang,
+                 alto:Math.max(14, altoBox - Math.abs(Math.tan(ang))*w), t:Date.now()};
+  const t2 = await etqLeerLinea(zona, linea);
+  const k2 = etqClave(t2);
+  if(k2){
+    etq.linea = linea;
+    // Doble lectura: la línea de la 1ª pasada coincide con la enderezada
+    return {texto:t2, doble: etqClave(elegida.text)===k2};
+  }
+  return {texto:data.text, doble:false};
+}
+
+async function etqPsm(m){ if(etq.psm!==m){ await etq.worker.setParameters({tessedit_pageseg_mode:m}); etq.psm = m; } }
+
+async function etqLeerLinea(zona, L){
+  const esc2 = Math.max(0.6, Math.min(3, 48/L.alto));
+  const c = document.createElement("canvas");
+  c.width = Math.round((L.w/Math.cos(L.ang) + L.alto*1.5)*esc2); c.height = Math.round(L.alto*2.2*esc2);
+  const ctx = c.getContext("2d", {willReadFrequently:true});
+  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,c.width,c.height);
+  ctx.imageSmoothingQuality = "high";
+  ctx.translate(c.width/2, c.height/2); ctx.scale(esc2, esc2); ctx.rotate(-L.ang);
+  ctx.drawImage(zona, -L.cx, -L.cy);
+  etqEnfocar(c);
+  await etqPsm("7");
+  const r = await etq.worker.recognize(c);
+  return (r.data.text||"").trim();
+}
+
+// Compara una miniatura con la del cuadro anterior: si la cámara se mueve, no vale la pena leer
+function etqSeMueve(zona){
+  const m = document.createElement("canvas"); m.width = 48; m.height = 20;
+  const ctx = m.getContext("2d", {willReadFrequently:true}); ctx.drawImage(zona,0,0,48,20);
+  const d = ctx.getImageData(0,0,48,20).data, g = new Uint8Array(48*20);
+  for(let i=0;i<g.length;i++) g[i] = d[i*4];
+  const prev = etq.miniatura; etq.miniatura = g;
+  if(!prev) return false;
+  let dif = 0; for(let i=0;i<g.length;i++) dif += Math.abs(g[i]-prev[i]);
+  return dif/g.length > 14;
 }
 
 // Realce de bordes (nitidez) sobre una imagen en grises
@@ -979,20 +1046,29 @@ async function etqCiclo(){
       etq.bloqueado = {k:"N:"+esqueleto(etq.creando), visto:Date.now()};
       etq.creando = null; etqDescartar();
     }
+    let espera = 60;
     if(!etq.pausa && etq.worker){
       const c = etqCapturar();
-      if(c){
+      if(c && etqSeMueve(c)){
+        etq.linea = null; espera = 120;
+        // Un movimiento claro (varios cuadros) = pasaste a otra caja: se puede volver a leer el mismo código
+        if(++etq.movimiento >= 3 && etq.bloqueado) etq.bloqueado = null;
+        etqEstado(etq.bloqueado ? "✔ Listo. Pasá a la próxima caja" : "Mantené la tablet quieta…");
+      }
+      else if(c){
+        etq.movimiento = 0;
         try{
-          const texto = await etqLeer(c);
-          if(etq.activo && !etq.pausa) etqProcesar(texto);
+          const {texto, doble} = await etqLeer(c);
+          if(etq.activo && !etq.pausa) etqProcesar(texto, doble);
         }catch(e){}
       }
     }
-    await new Promise(r=>setTimeout(r,120));
+    await new Promise(r=>setTimeout(r,espera));
   }
 }
 
-function etqProcesar(texto){
+function etqProcesar(texto, doble=false){
+  const suma = doble ? 2 : 1;
   etq.ultimoTexto = texto;
   const r = etqCoincidir(texto);
   const nuevo = !r ? etqExtraerCodigo(texto) : null;
@@ -1005,7 +1081,7 @@ function etqProcesar(texto){
   }
   if(!r && nuevo){
     // Código con formato válido que no está cargado: 3 lecturas iguales y se ofrece crearlo
-    etq.repeticiones = etq.previo===kActual ? etq.repeticiones+1 : 1;
+    etq.repeticiones = (etq.previo===kActual ? etq.repeticiones : 0) + suma;
     etq.previo = kActual;
     if(etq.repeticiones < 3){ etqEstado(`Leyendo código nuevo… <b>${esc(nuevo)}</b>`); return; }
     etq.pausa = true; etq.previo = null; etq.repeticiones = 0;
@@ -1024,7 +1100,7 @@ function etqProcesar(texto){
     etqEstado(`Acercá un poco o centrá mejor… <b>${esc(visto)}</b>`); return;
   }
   const clave = r.k;
-  etq.repeticiones = etq.previo===clave ? etq.repeticiones+1 : 1;
+  etq.repeticiones = (etq.previo===clave ? etq.repeticiones : 0) + suma;
   etq.previo = clave;
   $("etqGuia").classList.add("ok");
   if(etq.repeticiones < 2){ etqEstado(`Confirmando… <b>${esc(visto)}</b>`); return; }
@@ -1149,7 +1225,7 @@ async function etqOfrecerNuevo(codigo, texto){
   let unidades = etqExtraerUnidades(texto);
   // Lee la etiqueta entera para buscar "Unidad por caja"
   if(!unidades && etq.worker){
-    try{ const c = etqCapturar(true); if(c){ await etq.worker.setParameters({tessedit_pageseg_mode:"6"}); const {data} = await etq.worker.recognize(c); unidades = etqExtraerUnidades(data.text); } }catch{}
+    try{ const c = etqCapturar(true); if(c){ await etqPsm("6"); const {data} = await etq.worker.recognize(c); unidades = etqExtraerUnidades(data.text); } }catch{}
   }
   etq.nuevoUnidades = unidades;
   const cant = Math.max(1, parseInt($("etqCant").value)||1);
@@ -1232,10 +1308,17 @@ if("serviceWorker" in navigator && location.protocol !== "file:"){
 // Pide al navegador que no borre los datos guardados
 if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
+// Precarga del lector de etiquetas si ya se usó antes: así abre al instante
+function etqPrecargar(){
+  let usado = false; try{ usado = localStorage.getItem("ibragiu_ocr_usado")==="1"; }catch{}
+  if(usado && productos.some(p=>p.codigoInterno)) setTimeout(()=>etqPrepararOCR().catch(()=>{}), 2500);
+}
+
 (async ()=>{
   db = await abrirDB();
   productos = await dbTodos();
   render();
+  etqPrecargar();
 })();
 </script>
 </body>
