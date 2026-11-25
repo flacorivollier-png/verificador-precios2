@@ -1,7 +1,7 @@
 /* Service worker: permite usar la app sin internet.
  * Estrategia "red primero": si hay conexión se baja la versión nueva,
  * si no, se usa la copia guardada. Cambiar CACHE al publicar cambios grandes. */
-const CACHE = 'verificador-v20';
+const CACHE = 'verificador-v21';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -13,6 +13,8 @@ const ARCHIVOS = [
   './js/app.js',
   './js/etiquetas.js',
   './js/cuenta.js',
+  './js/presupuesto.js',
+  './icons/logo-guille-deco-negro.png',
   './vendor/barcode-detector.js',
   './vendor/zxing_reader.wasm',
   './js/escaner.js',

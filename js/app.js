@@ -171,6 +171,7 @@ async function cargarTodo() {
   await cargarConfigPrecios();
   await Etiquetas.cargar();
   await Cuenta.cargar();
+  await Presupuesto.cargar();
   const [lista, listaFichas] = await Promise.all([DB.todos('productos'), DB.todos('fichas')]);
   indexarProductos(lista);
   fichas = new Map(listaFichas.map(f => [f.codigo, f]));
@@ -434,7 +435,7 @@ function irA(vista) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activa', t.dataset.vista === vista));
   if (vista !== 'consultar') cerrarScanner();
   if (vista === 'etiquetas') Etiquetas.render();
-  if (vista === 'cuenta') Cuenta.render();
+  if (vista === 'cuenta') { Cuenta.render(); Presupuesto.render(); }
   if (vista === 'fichas') mostrarSolapaFichas($('#segParaFoto').classList.contains('activo') ? 'foto' : 'ficha');
 }
 
@@ -886,6 +887,7 @@ function conectarEventos() {
   $('#inputBackup').addEventListener('change', importarFichas);
   Etiquetas.conectar();
   Cuenta.conectar();
+  Presupuesto.conectar();
   // apagar la cámara si la app pasa a segundo plano
   document.addEventListener('visibilitychange', () => { if (document.hidden) cerrarScanner(); });
   document.addEventListener('acceso-bloqueado', () => cerrarScanner());

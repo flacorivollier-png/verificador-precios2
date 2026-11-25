@@ -107,6 +107,22 @@
       <button type="button" id="btnCompartirCuenta" class="btn btn-whatsapp">💬 Enviar</button>
       <button type="button" id="btnVaciarCuenta" class="btn btn-gris">🗑️ Nueva cuenta</button>
     </div>
+
+    <div id="bloquePresupuesto" class="bloque-presupuesto oculto">
+      <h2>Presupuesto</h2>
+      <div class="presu-cliente">
+        <input id="presuCliente" type="text" placeholder="Cliente (opcional)" autocomplete="off">
+        <input id="presuTelefono" type="tel" placeholder="Teléfono (opcional)" autocomplete="off">
+      </div>
+      <label class="check"><input type="checkbox" id="presuEfectivo"> <span id="presuEfectivoTxt">Mostrar precio en efectivo</span></label>
+      <label class="check"><input type="checkbox" id="presuCuit"> <span id="presuCuitTxt">Mostrar CUIT</span></label>
+      <label class="campo">Observaciones <small>(opcional: sale en la hoja si escribís algo)</small>
+        <textarea id="presuObs" rows="2"></textarea>
+      </label>
+      <button type="button" id="btnPresupuesto" class="btn btn-verde" disabled>🧾 Presupuesto en PDF</button>
+      <p class="ayuda">Se abre el menú <b>Compartir</b>: elegí <b>Imprimir</b> o mandalo por <b>WhatsApp</b>.</p>
+      <div id="previaPresupuesto" class="previa-presupuesto"></div>
+    </div>
   </section>
 
   <!-- ===================== ETIQUETAS ===================== -->
@@ -137,6 +153,15 @@
     <div class="info-box config-precios">
       <label class="fila-config"><span>Descuento en efectivo</span>
         <span><input id="cfgEfectivo" type="number" inputmode="decimal" min="0" max="90" step="0.5"> %</span></label>
+    </div>
+
+    <h2>Datos del local <small class="h2-sub">(para el presupuesto)</small></h2>
+    <div class="info-box config-local">
+      <label>CUIT <input id="cfgCuit" type="text" inputmode="numeric" placeholder="20-12345678-9" autocomplete="off"></label>
+      <label>Dirección <input id="cfgDireccion" type="text" placeholder="Calle 123, Ciudad" autocomplete="off"></label>
+      <label>WhatsApp / teléfono <input id="cfgWhatsapp" type="tel" placeholder="11 5555-1234" autocomplete="off"></label>
+      <label>Instagram <input id="cfgInstagram" type="text" placeholder="@guille.decobazar" autocapitalize="none" autocomplete="off"></label>
+      <p class="ayuda">Lo que dejes vacío no aparece en el presupuesto. El CUIT además lo elegís en cada presupuesto.</p>
     </div>
 
     <h2>Copia de seguridad de fichas</h2>
@@ -238,6 +263,7 @@
 <script src="js/escaner.js"></script>
 <script src="js/etiquetas.js"></script>
 <script src="js/cuenta.js"></script>
+<script src="js/presupuesto.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
