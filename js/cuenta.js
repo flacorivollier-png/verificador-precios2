@@ -12,6 +12,7 @@ const Cuenta = (() => {
   async function guardar() {
     await DB.setMeta('cuenta', items);
     actualizarContador();
+    document.dispatchEvent(new Event('cuenta-cambio'));
   }
 
   /** Datos actuales (si se cargó una lista nueva, toma el precio nuevo). */
@@ -52,6 +53,7 @@ const Cuenta = (() => {
     if (!items.length) return;
     if (!confirm('¿Empezar una cuenta nueva? Se borran los productos sumados.')) return;
     items = [];
+    document.dispatchEvent(new Event('cuenta-vaciada'));
     await guardar();
     render();
   }
@@ -124,5 +126,8 @@ const Cuenta = (() => {
     q('#btnVaciarCuenta').addEventListener('click', vaciar);
   }
 
-  return { cargar, agregar, render, conectar };
+  /** Productos de la cuenta con sus datos actuales (para el presupuesto). */
+  const lista = () => items.map(datos);
+
+  return { cargar, agregar, render, conectar, lista, totales };
 })();

@@ -494,3 +494,16 @@ input[type=checkbox] { accent-color: var(--verde); }
 .item-cuenta .p.sub { font-size: 18px; min-width: 72px; text-align: right; }
 #vista-cuenta .fila-botones { margin-top: 12px; }
 .tab span { white-space: nowrap; }
+
+/* ---------- presupuesto (dentro de Sumar) ---------- */
+.bloque-presupuesto { margin-top: 18px; padding-top: 6px; border-top: 1px solid var(--borde); }
+.presu-cliente { display: flex; gap: 8px; margin-bottom: 4px; }
+.presu-cliente input, .config-local input {
+  flex: 1; min-width: 0; font-size: 16px; padding: 11px 12px; border-radius: 10px;
+  border: 1px solid var(--borde); background: var(--panel); color: var(--texto); font-family: inherit;
+}
+.check input:disabled + span { color: var(--suave); }
+.previa-presupuesto { margin-top: 12px; }
+.h2-sub { font-size: 13px; color: var(--suave); font-weight: 500; }
+.config-local label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.config-local input { background: var(--fondo); font-weight: 400; }
