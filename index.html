@@ -97,6 +97,31 @@
     </div>
   </section>
 
+  <!-- ===================== CUENTA ===================== -->
+  <section id="vista-cuenta" class="vista">
+    <h2>Sumar productos</h2>
+    <div id="totalCuenta" class="tarjeta total-cuenta"></div>
+    <p id="ayudaCuenta" class="info-box">Buscá o escaneá un producto y tocá <b>“➕ Sumar a la cuenta”</b>. Acá se va armando el total. Con − y + cambiás la cantidad.</p>
+    <ul id="listaCuenta" class="lista"></ul>
+    <div class="fila-botones">
+      <button type="button" id="btnCompartirCuenta" class="btn btn-whatsapp">💬 Enviar</button>
+      <button type="button" id="btnVaciarCuenta" class="btn btn-gris">🗑️ Nueva cuenta</button>
+    </div>
+  </section>
+
+  <!-- ===================== ETIQUETAS ===================== -->
+  <section id="vista-etiquetas" class="vista">
+    <h2>Hoja de etiquetas A4</h2>
+    <p id="estadoEtiquetas" class="info-box"></p>
+    <div class="fila-botones">
+      <button type="button" id="btnImprimirEtiquetas" class="btn btn-verde">🖨️ Imprimir</button>
+      <button type="button" id="btnVaciarEtiquetas" class="btn btn-gris">🗑️ Vaciar</button>
+    </div>
+    <p class="ayuda">Al tocar <b>Imprimir</b> se abre el menú Compartir con la hoja en PDF: elegí <b>“Imprimir”</b> y tu impresora (tiene que estar en la misma red WiFi que el teléfono), o abrila con la app <b>HP Smart</b>. Imprimí en tamaño A4, al 100 %.</p>
+    <div id="previaHojas" class="previa-hojas"></div>
+    <ul id="listaEtiquetas" class="lista"></ul>
+  </section>
+
   <!-- ===================== DATOS ===================== -->
   <section id="vista-datos" class="vista">
     <h2>Lista de precios</h2>
@@ -148,7 +173,9 @@
 
 <nav class="tabs">
   <button data-vista="consultar" class="tab activa">🔎<span>Consultar</span></button>
+  <button data-vista="cuenta" class="tab">🧮<span>Sumar</span><b id="badgeCuenta" class="badge oculto">0</b></button>
   <button data-vista="fichas" class="tab">⭐<span>Fichas</span></button>
+  <button data-vista="etiquetas" class="tab">🏷️<span>Etiquetas</span><b id="badgeEtiquetas" class="badge oculto">0</b></button>
   <button data-vista="datos" class="tab">⚙️<span>Datos</span></button>
 </nav>
 
@@ -209,6 +236,8 @@
 <script src="js/acceso.js"></script>
 <script src="js/importar.js"></script>
 <script src="js/escaner.js"></script>
+<script src="js/etiquetas.js"></script>
+<script src="js/cuenta.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

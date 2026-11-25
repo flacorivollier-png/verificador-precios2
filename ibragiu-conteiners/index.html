@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ibragiu Conteiners</title>
+<meta name="theme-color" content="#4a3322">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<script src="lib/html5-qrcode.min.js"></script>
+<script src="lib/JsBarcode.all.min.js"></script>
+<style>
+:root{
+  /* Colores de la caja: cartón arena + marrón */
+  --bg:#efe3cf; --header:#4a3322; --panel:#f7efe2; --card:#fffaf2; --text:#3b2a1c; --muted:#7d6650;
+  --accent:#8b5e34; --sand:#d4b48a; --ok:#5b7f2a; --warn:#d08a1c; --danger:#b4412e; --border:#d9c4a3;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{
+  position:sticky;top:0;z-index:10;background:var(--header);border-bottom:4px solid var(--sand);
+  box-shadow:0 2px 10px rgba(59,42,28,.25);
+  padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center
+}
+header h1{margin:0 12px 0 0;font-size:22px;letter-spacing:.5px}
+header h1 img{height:52px;display:block}
+input,select,textarea{
+  font-size:16px;padding:10px;border-radius:10px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);width:100%
+}
+button{
+  font-size:15px;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;font-weight:bold;white-space:nowrap
+}
+button.sec{background:#a07a52}
+header button.sec{background:#6b4b31}
+button.danger{background:var(--danger)}
+button.warn{background:var(--warn)}
+.search{flex:1;min-width:180px}
+.filtro{width:auto;min-width:150px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+
+.resumen{padding:10px 16px;color:var(--muted);font-size:14px;display:flex;gap:18px;flex-wrap:wrap}
+.resumen b{color:var(--text)}
+
+main{padding:0 16px 40px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 2px;scrollbar-width:thin}
+.tab{flex:0 0 auto;background:var(--panel);color:var(--text);border:2px solid var(--border);
+  border-radius:999px;padding:8px 14px;font-weight:bold;font-size:14px}
+.tab small{font-weight:normal;color:var(--muted);margin-left:4px}
+.tab.activa{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab.activa small{color:#f3e2c7}
+.contenedor{margin-top:22px;background:rgba(255,250,242,.55);border:2px solid var(--border);
+  border-radius:16px;padding:4px 14px 18px}
+.contHead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;
+  margin:12px 0 0;padding-bottom:10px;border-bottom:2px dashed var(--sand)}
+.contHead h2{margin:0;font-size:22px;color:var(--header)}
+.contHead small{color:var(--muted);font-size:14px}
+.contHead button{padding:6px 12px;font-size:13px}
+.categoria h2{
+  margin:24px 0 12px;font-size:20px;border-left:5px solid var(--accent);padding-left:10px;
+  display:flex;justify-content:space-between;align-items:center
+}
+.categoria h2 small{color:var(--muted);font-weight:normal;font-size:14px}
+.grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.item{
+  background:var(--card);color:var(--text);border-radius:12px;box-shadow:0 2px 8px rgba(74,51,34,.12);overflow:hidden;cursor:pointer;
+  display:flex;flex-direction:column;border:3px solid transparent;transition:transform .1s
+}
+.item:hover{transform:translateY(-2px)}
+.item.bajo{border-color:var(--warn)}
+.item.sin{border-color:var(--danger)}
+.foto{aspect-ratio:1/1;background:#fff;display:flex;align-items:center;justify-content:center}
+.foto img{width:100%;height:100%;object-fit:contain}
+.foto .nofoto{color:var(--muted);font-size:13px}
+.info{padding:8px;text-align:center}
+.info .nombre{font-size:13px;font-weight:bold;min-height:16px;margin-bottom:4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.info svg{width:100%;height:46px}
+.info .cod{font-family:monospace;font-size:13px}
+.info .interno{font-size:12px;color:var(--muted)}
+.stock{font-size:12px;padding:6px;background:#eadbc2;text-align:center;font-weight:bold}
+.item.bajo .stock{background:#f6d9a0}
+.item.sin .stock{background:#f1c2b6}
+.vacio{text-align:center;color:var(--muted);padding:60px 10px}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(59,42,28,.55);display:none;align-items:flex-start;
+  justify-content:center;z-index:50;overflow:auto;padding:20px 10px}
+.modal.open{display:flex}
+#modalProducto{z-index:60} /* se abre por encima del lector de etiquetas */
+.caja{background:var(--panel);border-radius:14px;padding:18px;width:100%;max-width:560px}
+.caja h3{margin-top:0}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fila.una{grid-template-columns:1fr}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.preview{width:140px;height:140px;background:#fff;border:1px solid var(--border);border-radius:10px;display:flex;
+  align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px}
+.preview img{width:100%;height:100%;object-fit:contain}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}
+.conCodigo{display:flex;gap:6px}
+.conCodigo button{padding:10px}
+#reader{width:100%;max-width:360px;margin:10px auto}
+
+/* Lector de etiquetas */
+button.etiqueta{background:var(--sand);color:var(--header)}
+.caja.ancha{max-width:760px}
+.modoMov{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.modoBtn{font-size:18px;padding:14px;background:#cdb795;color:var(--header);opacity:.75}
+.modoBtn.activo.sal{background:var(--danger);color:#fff;opacity:1}
+.modoBtn.activo.ent{background:var(--ok);color:#fff;opacity:1}
+.visor{position:relative;width:100%;margin:0 auto;background:#000;border-radius:12px;overflow:hidden}
+.visor video{width:100%;height:100%;display:block;object-fit:fill}
+.guia{position:absolute;left:8%;right:8%;top:32%;height:36%;border:3px solid #fff;border-radius:10px;
+  box-shadow:0 0 0 2000px rgba(0,0,0,.35)}
+.guia.ok{border-color:#86efac}
+.estadoOCR{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:rgba(59,42,28,.8);
+  color:#fff;font-size:14px;text-align:center}
+.estadoOCR b{color:#fde68a;font-family:monospace;font-size:15px}
+.linterna{position:absolute;top:8px;right:8px;padding:8px 10px}
+.zoomBox{position:absolute;top:8px;left:8px;right:64px;display:flex;align-items:center;gap:6px;
+  background:rgba(59,42,28,.6);color:#fff;border-radius:10px;padding:4px 10px}
+.zoomBox input{flex:1;padding:0;background:transparent;border:none}
+.hallado{display:flex;gap:12px;align-items:center;background:var(--card);border:3px solid var(--accent);
+  border-radius:12px;padding:10px;margin-top:10px}
+.hallado img,.hallado .sinf{width:96px;height:96px;object-fit:contain;background:#fff;border-radius:8px;flex:0 0 auto}
+.hallado .sinf{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+.hallado .det{flex:1;min-width:0}
+.hallado .codInt{font-family:monospace;font-size:22px;font-weight:bold}
+.hallado .nom{font-weight:bold}
+.hallado .meta{color:var(--muted);font-size:13px}
+.hallado .cuenta{font-size:18px;margin-top:4px}
+.hallado .botones{display:flex;flex-direction:column;gap:6px}
+.hallado .botones button{font-size:16px;padding:12px 14px}
+.opciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.aviso{background:#f6d9a0;color:var(--header);padding:8px 10px;border-radius:10px;margin-top:8px;font-size:14px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--text);margin:10px 0}
+.chk input{width:auto}
+.etqLog div{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.etqLog button{padding:4px 10px;font-size:12px}
+.hallado.nuevo{border-color:var(--ok)}
+.hallado.nuevo .badge{display:inline-block;background:var(--ok);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:bold}
+.mov{display:flex;gap:8px;align-items:end;margin-top:6px}
+.historial{max-height:160px;overflow:auto;font-size:13px;color:var(--muted);margin-top:8px;
+  border-top:1px solid var(--border);padding-top:6px}
+.historial div{padding:3px 0;border-bottom:1px dashed var(--border)}
+.ent{color:var(--ok)} .sal{color:var(--danger)}
+.stockGrande{font-size:34px;font-weight:bold;color:var(--accent)}
+
+@media (max-width:600px){
+  .grilla{grid-template-columns:repeat(2,1fr);gap:10px}
+  .fila{grid-template-columns:1fr}
+  header h1{width:100%}
+  header h1 img{height:68px}
+}
+
+/* Impresión: catálogo limpio */
+@media print{
+  body{background:#fff;color:#000}
+  header,.resumen,.modal{display:none!important}
+  .categoria{break-inside:auto}
+  .categoria h2{color:#000;border-color:#000}
+  .categoria h2 small{color:#333}
+  .tabs{display:none!important}
+  .contenedor{border:none;background:none;padding:0;break-before:page}
+  .contenedor:first-child{break-before:auto}
+  .contHead h2{color:#000}
+  .contHead button{display:none}
+  .grilla{grid-template-columns:repeat(4,1fr)}
+  .item{border:1px solid #ccc!important;break-inside:avoid}
+  .stock{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1><img src="logo.png" alt="Ibragiu Conteiners"></h1>
+  <input class="search" id="buscar" placeholder="Buscar por nombre, código de barras o interno…">
+  <select class="filtro" id="filtroCat"><option value="">Todas las categorías</option></select>
+  <select class="filtro" id="filtroStock">
+    <option value="">Todo el stock</option>
+    <option value="bajo">Stock bajo</option>
+    <option value="sin">Sin stock</option>
+  </select>
+  <div class="toolbar">
+    <button class="etiqueta" onclick="abrirEtiqueta()">🏷 Leer etiqueta</button>
+    <button onclick="abrirNuevo()">+ Producto</button>
+    <button class="sec" onclick="escanearBusqueda()">📷 Escanear</button>
+    <button class="sec" onclick="abrir('modalDatos')">⚙ Datos</button>
+    <button class="sec" onclick="window.print()">🖨 Imprimir</button>
+    <button id="btnInstalar" style="display:none" onclick="instalarApp()">📲 Instalar app</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+<div class="resumen" id="resumen"></div>
+<main id="catalogo"></main>
+
+<!-- Modal producto -->
+<div class="modal" id="modalProducto">
+  <div class="caja">
+    <h3 id="tituloProducto">Nuevo producto</h3>
+    <div class="fila una">
+      <div>
+        <label>Contenedor</label>
+        <input id="contenedor" list="listaContenedores" placeholder="Ej: Contenedor 1, MSKU1234567, Marzo 2026">
+        <datalist id="listaContenedores"></datalist>
+      </div>
+    </div>
+    <div class="fila">
+      <div>
+        <label>Foto</label>
+        <div class="preview" id="preview"><span class="nofoto">Sin foto</span></div>
+        <input type="file" id="foto" accept="image/*">
+      </div>
+      <div>
+        <label>Nombre / descripción</label>
+        <input id="nombre">
+        <label style="margin-top:10px">Categoría</label>
+        <input id="categoria" list="listaCategorias" placeholder="Ej: Vasos, Tapas, Bandejas">
+        <datalist id="listaCategorias"></datalist>
+      </div>
+    </div>
+    <div class="fila">
+      <div>
+        <label>Código de barras</label>
+        <div class="conCodigo">
+          <input id="codigoBarras" inputmode="numeric">
+          <button class="sec" type="button" onclick="escanearAlCampo()">📷</button>
+        </div>
+      </div>
+      <div>
+        <label>Código interno</label>
+        <input id="codigoInterno">
+      </div>
+    </div>
+    <div class="fila">
+      <div>
+        <label>Unidades por caja</label>
+        <input id="unidadesCaja" type="number" min="1" value="1">
+      </div>
+      <div>
+        <label>Stock mínimo (cajas)</label>
+        <input id="stockMinimo" type="number" min="0" value="0">
+      </div>
+    </div>
+    <div class="fila" id="filaStockInicial">
+      <div>
+        <label>Stock inicial (cajas)</label>
+        <input id="stockInicial" type="number" min="0" value="0">
+      </div>
+    </div>
+
+    <div id="seccionStock" style="display:none">
+      <label>Stock actual</label>
+      <div class="stockGrande" id="stockActual"></div>
+      <div id="stockUnidades" style="color:var(--muted)"></div>
+      <div class="mov">
+        <div style="flex:1"><label>Cajas</label><input id="cantMov" type="number" min="1" value="1"></div>
+        <button onclick="moverStock(1)">+ Entrada</button>
+        <button class="danger" onclick="moverStock(-1)">− Salida</button>
+      </div>
+      <input id="notaMov" placeholder="Nota (opcional): proveedor, cliente, remito…" style="margin-top:8px">
+      <div class="historial" id="historial"></div>
+    </div>
+
+    <div class="acciones">
+      <button class="danger" id="btnEliminar" onclick="eliminar()" style="margin-right:auto;display:none">Eliminar</button>
+      <button class="sec" onclick="cerrar('modalProducto')">Cancelar</button>
+      <button onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal escáner -->
+<div class="modal" id="modalScanner">
+  <div class="caja">
+    <h3>Escanear código</h3>
+    <div id="reader"></div>
+    <div class="acciones"><button class="sec" onclick="detenerScanner()">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Modal lector de etiquetas (código interno impreso, ej. MA 90-04) -->
+<div class="modal" id="modalEtiqueta">
+  <div class="caja ancha">
+    <h3>🏷 Leer etiqueta de caja</h3>
+    <div class="modoMov">
+      <button class="modoBtn sal activo" id="modoSalida" onclick="etqModo(-1)">− Salida</button>
+      <button class="modoBtn ent" id="modoEntrada" onclick="etqModo(1)">+ Entrada</button>
+    </div>
+    <div class="fila">
+      <div><label>Cajas por lectura</label><input id="etqCant" type="number" min="1" value="1"></div>
+      <div><label>Buscando en</label><div id="etqDonde" style="padding:10px 0;font-weight:bold"></div></div>
+    </div>
+    <div class="visor" id="etqVisor">
+      <video id="etqVideo" playsinline muted></video>
+      <div class="guia" id="etqGuia"></div>
+      <button class="sec linterna" id="etqLinterna" style="display:none" onclick="etqLinterna()">🔦</button>
+      <div class="zoomBox" style="display:none">🔍 <input type="range" id="etqZoom"></div>
+      <div class="estadoOCR" id="etqEstado">Preparando lector…</div>
+    </div>
+    <div id="etqResultado"></div>
+    <label class="chk"><input type="checkbox" id="etqAuto"> Modo rápido: confirmar solo cuando la lectura es exacta</label>
+    <div class="conCodigo">
+      <input id="etqManual" list="listaInternos" placeholder="¿No la lee? Escribí el código, ej: MA 90-04">
+      <button class="sec" onclick="etqBuscarManual()">Buscar</button>
+    </div>
+    <datalist id="listaInternos"></datalist>
+    <div class="historial etqLog" id="etqLog"></div>
+    <div class="acciones"><button class="sec" onclick="cerrarEtiqueta()">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Modal datos -->
+<div class="modal" id="modalDatos">
+  <div class="caja">
+    <h3>Datos</h3>
+    <p style="color:var(--muted);font-size:14px">
+      Los productos se guardan en este dispositivo. Exportá una copia de seguridad para pasarlos a otro equipo.
+    </p>
+    <div class="toolbar">
+      <button onclick="exportarBackup()">⬇ Exportar copia (JSON)</button>
+      <button class="sec" onclick="document.getElementById('archivoBackup').click()">⬆ Importar copia</button>
+      <button class="sec" onclick="exportarCSV()">⬇ Exportar stock (CSV)</button>
+      <button class="sec" onclick="document.getElementById('archivoCSV').click()">⬆ Importar CSV</button>
+    </div>
+    <input type="file" id="archivoBackup" accept=".json" style="display:none">
+    <input type="file" id="archivoCSV" accept=".csv,.txt" style="display:none">
+    <p style="color:var(--muted);font-size:13px;margin-top:14px">
+      CSV con columnas: <code>contenedor; codigo_barras; codigo_interno; nombre; categoria; unidades_caja; stock_cajas; stock_minimo</code>.
+      Si el código de barras ya existe en ese contenedor, se actualiza (la foto se conserva).
+    </p>
+    <div class="acciones"><button class="sec" onclick="cerrar('modalDatos')">Cerrar</button></div>
+  </div>
+</div>
+
+<script>
+/* ---------- Almacenamiento (IndexedDB, soporta muchas fotos) ---------- */
+const DB_NAME = "ibragiu_conteiners", STORE = "productos";
+let db, productos = [], editandoId = null, fotoActual = null, scanner = null;
+
+function abrirDB(){
+  return new Promise((res, rej)=>{
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, {keyPath:"id"});
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
+  });
+}
+function tx(modo){ return db.transaction(STORE, modo).objectStore(STORE); }
+function dbTodos(){ return new Promise(r=>{ const q=tx("readonly").getAll(); q.onsuccess=()=>r(q.result); }); }
+function dbGuardar(p){ return new Promise((r,j)=>{ const q=tx("readwrite").put(p); q.onsuccess=r; q.onerror=()=>j(q.error); }); }
+function dbBorrar(id){ return new Promise(r=>{ const q=tx("readwrite").delete(id); q.onsuccess=r; }); }
+
+/* ---------- Utilidades ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nuevoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const catDe = p => (p.categoria || "").trim() || "Sin categoría";
+const SIN_CONT = "Sin contenedor";
+const contDe = p => (p.contenedor || "").trim() || SIN_CONT;
+// Orden natural: "Contenedor 2" antes que "Contenedor 10"; "Sin contenedor" al final
+const ordenCont = (a,b) => a===SIN_CONT ? 1 : b===SIN_CONT ? -1 : a.localeCompare(b,"es",{numeric:true});
+let contSel = "";
+try{ contSel = localStorage.getItem("ibragiu_contenedor") || ""; }catch{}
+function elegirContenedor(c){
+  contSel = c;
+  try{ localStorage.setItem("ibragiu_contenedor", c); }catch{}
+  $("filtroCat").value = "";
+  render();
+  window.scrollTo({top:0});
+}
+
+function estadoStock(p){
+  if((p.stockCajas||0) <= 0) return "sin";
+  if((p.stockMinimo||0) > 0 && p.stockCajas <= p.stockMinimo) return "bajo";
+  return "ok";
+}
+
+// Reduce la foto para no llenar la memoria del dispositivo
+function comprimirImagen(file, max=700){
+  return new Promise((res, rej)=>{
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width*k); c.height = Math.round(img.height*k);
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0,0,c.width,c.height);
+        ctx.drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL("image/jpeg", .8));
+      };
+      img.onerror = rej;
+      img.src = fr.result;
+    };
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- Render del catálogo ---------- */
+function render(){
+  const texto = $("buscar").value.trim().toLowerCase();
+  const fCat = $("filtroCat").value, fStock = $("filtroStock").value;
+
+  const contenedores = [...new Set(productos.map(contDe))].sort(ordenCont);
+  if(contSel && !contenedores.includes(contSel)) contSel = "";
+  const delCont = productos.filter(p=>!contSel || contDe(p)===contSel);
+
+  const lista = delCont.filter(p=>{
+    if(fCat && catDe(p) !== fCat) return false;
+    if(fStock && estadoStock(p) !== fStock) return false;
+    if(texto){
+      const t = [p.nombre,p.codigoBarras,p.codigoInterno,p.categoria,p.contenedor].join(" ").toLowerCase();
+      if(!t.includes(texto)) return false;
+    }
+    return true;
+  });
+
+  const sumaCajas = l => l.reduce((s,p)=>s+(+p.stockCajas||0),0);
+
+  // Pestañas de contenedores
+  $("tabs").innerHTML = productos.length ?
+    `<button class="tab ${contSel?"":"activa"}" onclick="elegirContenedor('')">Todos<small>${sumaCajas(productos)} cajas</small></button>` +
+    contenedores.map(c=>{
+      const l = productos.filter(p=>contDe(p)===c);
+      return `<button class="tab ${c===contSel?"activa":""}" data-cont="${esc(c)}">📦 ${esc(c)}<small>${sumaCajas(l)} cajas</small></button>`;
+    }).join("") : "";
+  $("tabs").querySelectorAll("[data-cont]").forEach(b=>b.onclick=()=>elegirContenedor(b.dataset.cont));
+
+  // Agrupar por categoría, ordenadas alfabéticamente
+  const porCategoria = items => {
+    const grupos = {};
+    items.forEach(p => (grupos[catDe(p)] ??= []).push(p));
+    return Object.keys(grupos).sort((a,b)=>{
+      if(a==="Sin categoría") return 1; if(b==="Sin categoría") return -1;
+      return a.localeCompare(b,"es");
+    }).map(cat=>{
+      const its = grupos[cat].sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"","es"));
+      return `<section class="categoria">
+        <h2>${esc(cat)} <small>${its.length} productos · ${sumaCajas(its)} cajas</small></h2>
+        <div class="grilla">${its.map(tarjeta).join("")}</div>
+      </section>`;
+    }).join("");
+  };
+  const bloqueContenedor = (c, items) => `<section class="contenedor">
+      <div class="contHead">
+        <h2>📦 ${esc(c)}</h2>
+        <small>${items.length} productos · ${sumaCajas(items)} cajas · ${new Set(items.map(catDe)).size} categorías</small>
+      </div>${porCategoria(items)}</section>`;
+
+  const cont = $("catalogo");
+  if(!lista.length){
+    cont.innerHTML = `<div class="vacio">${!productos.length ? "Todavía no hay productos. Tocá <b>+ Producto</b> para cargar el primero."
+      : "No hay productos que coincidan."}</div>`;
+  } else if(contSel){
+    cont.innerHTML = bloqueContenedor(contSel, lista);
+  } else {
+    // Vista "Todos": separado por contenedor y dentro por categoría
+    cont.innerHTML = contenedores.map(c=>{
+      const items = lista.filter(p=>contDe(p)===c);
+      return items.length ? bloqueContenedor(c, items) : "";
+    }).join("");
+    cont.querySelectorAll("svg.barcode").forEach(svg=>{
+      try{
+        JsBarcode(svg, svg.dataset.code, {displayValue:false, margin:0, height:40, width:1.6});
+      }catch(e){ svg.remove(); }
+    });
+  }
+
+  // Resumen
+  const totalCajas = sumaCajas(delCont);
+  const bajos = delCont.filter(p=>estadoStock(p)==="bajo").length;
+  const sin = delCont.filter(p=>estadoStock(p)==="sin").length;
+  $("resumen").innerHTML =
+    (contSel ? "" : `<span>Contenedores: <b>${contenedores.length}</b></span>`) +
+    `<span>Productos: <b>${delCont.length}</b></span>
+     <span>Categorías: <b>${new Set(delCont.map(catDe)).size}</b></span>
+     <span>Cajas en stock: <b>${totalCajas}</b></span>
+     <span>Stock bajo: <b style="color:var(--warn)">${bajos}</b></span>
+     <span>Sin stock: <b style="color:var(--danger)">${sin}</b></span>`;
+
+  // Listas de categorías
+  const todas = [...new Set(productos.map(catDe))].sort((a,b)=>a.localeCompare(b,"es"));
+  const visibles = [...new Set(delCont.map(catDe))].sort((a,b)=>a.localeCompare(b,"es"));
+  $("filtroCat").innerHTML = `<option value="">Todas las categorías</option>` +
+    visibles.map(c=>`<option ${c===fCat?"selected":""}>${esc(c)}</option>`).join("");
+  $("listaContenedores").innerHTML = contenedores.filter(c=>c!==SIN_CONT).map(c=>`<option value="${esc(c)}">`).join("");
+  $("listaCategorias").innerHTML = todas.filter(c=>c!=="Sin categoría").map(c=>`<option value="${esc(c)}">`).join("");
+}
+
+function tarjeta(p){
+  const est = estadoStock(p);
+  const unidades = (+p.stockCajas||0) * (+p.unidadesCaja||1);
+  return `<div class="item ${est==="ok"?"":est}" onclick="abrirEditar('${p.id}')">
+    <div class="foto">${p.foto ? `<img src="${p.foto}" loading="lazy" alt="">` : `<span class="nofoto">Sin foto</span>`}</div>
+    <div class="info">
+      <div class="nombre" title="${esc(p.nombre)}">${esc(p.nombre)}</div>
+      ${p.codigoBarras ? `<svg class="barcode" data-code="${esc(p.codigoBarras)}"></svg>
+      <div class="cod">${esc(p.codigoBarras)}</div>` : ""}
+      ${p.codigoInterno ? `<div class="interno">Int: ${esc(p.codigoInterno)}</div>` : ""}
+    </div>
+    <div class="stock">${+p.stockCajas||0} cajas · ${unidades} u.</div>
+  </div>`;
+}
+
+/* ---------- Modal producto ---------- */
+function abrir(id){ $(id).classList.add("open"); }
+function cerrar(id){ $(id).classList.remove("open"); }
+
+function abrirNuevo(codigo=""){
+  editandoId = null; fotoActual = null;
+  $("tituloProducto").textContent = "Nuevo producto";
+  ["nombre","categoria","codigoInterno"].forEach(k=>$(k).value="");
+  $("contenedor").value = contSel && contSel!==SIN_CONT ? contSel : "";
+  $("codigoBarras").value = codigo;
+  $("unidadesCaja").value = 1; $("stockMinimo").value = 0; $("stockInicial").value = 0;
+  $("foto").value = "";
+  $("preview").innerHTML = `<span class="nofoto">Sin foto</span>`;
+  $("filaStockInicial").style.display = "";
+  $("seccionStock").style.display = "none";
+  $("btnEliminar").style.display = "none";
+  abrir("modalProducto");
+}
+
+function abrirEditar(id){
+  const p = productos.find(x=>x.id===id); if(!p) return;
+  editandoId = id; fotoActual = p.foto || null;
+  $("tituloProducto").textContent = "Editar producto";
+  $("nombre").value = p.nombre||""; $("categoria").value = p.categoria||"";
+  $("contenedor").value = p.contenedor||"";
+  $("codigoBarras").value = p.codigoBarras||""; $("codigoInterno").value = p.codigoInterno||"";
+  $("unidadesCaja").value = p.unidadesCaja||1; $("stockMinimo").value = p.stockMinimo||0;
+  $("foto").value = "";
+  $("preview").innerHTML = p.foto ? `<img src="${p.foto}">` : `<span class="nofoto">Sin foto</span>`;
+  $("filaStockInicial").style.display = "none";
+  $("seccionStock").style.display = "";
+  $("btnEliminar").style.display = "";
+  $("cantMov").value = 1; $("notaMov").value = "";
+  pintarStock(p);
+  abrir("modalProducto");
+}
+
+function pintarStock(p){
+  $("stockActual").textContent = `${+p.stockCajas||0} cajas`;
+  $("stockUnidades").textContent = `${(+p.stockCajas||0)*(+p.unidadesCaja||1)} unidades (${p.unidadesCaja||1} por caja)`;
+  const h = (p.movimientos||[]).slice().reverse();
+  $("historial").innerHTML = h.length ? h.map(m=>
+    `<div><span class="${m.cajas>0?"ent":"sal"}">${m.cajas>0?"+":""}${m.cajas} cajas</span>
+     · ${new Date(m.fecha).toLocaleString("es-AR")} ${m.nota?"· "+esc(m.nota):""}</div>`).join("")
+    : "<div>Sin movimientos todavía.</div>";
+}
+
+$("foto").addEventListener("change", async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  fotoActual = await comprimirImagen(f);
+  $("preview").innerHTML = `<img src="${fotoActual}">`;
+});
+
+async function guardar(){
+  const datos = {
+    nombre: $("nombre").value.trim(),
+    categoria: $("categoria").value.trim(),
+    contenedor: $("contenedor").value.trim(),
+    codigoBarras: $("codigoBarras").value.trim(),
+    codigoInterno: $("codigoInterno").value.trim(),
+    unidadesCaja: Math.max(1, parseInt($("unidadesCaja").value)||1),
+    stockMinimo: Math.max(0, parseInt($("stockMinimo").value)||0),
+    foto: fotoActual
+  };
+  if(!datos.nombre && !datos.codigoBarras && !datos.codigoInterno){
+    alert("Cargá al menos un nombre o un código."); return;
+  }
+  if(datos.codigoBarras){
+    // El mismo producto puede venir en distintos contenedores, pero no repetido en el mismo
+    const dup = productos.find(p=>p.codigoBarras===datos.codigoBarras && p.id!==editandoId
+                                 && contDe(p)===(datos.contenedor||SIN_CONT));
+    if(dup){ alert(`Ese código de barras ya está cargado en ${contDe(dup)}: ${dup.nombre||dup.codigoInterno}`); return; }
+  }
+  let p;
+  if(editandoId){
+    p = Object.assign(productos.find(x=>x.id===editandoId), datos);
+  } else {
+    const inicial = Math.max(0, parseInt($("stockInicial").value)||0);
+    p = {id:nuevoId(), ...datos, stockCajas:inicial,
+         movimientos: inicial ? [{fecha:Date.now(), cajas:inicial, nota:"Stock inicial"}] : []};
+    productos.push(p);
+  }
+  await dbGuardar(p);
+  cerrar("modalProducto");
+  render();
+  etqTrasGuardar(p, !editandoId);
+}
+
+async function moverStock(signo){
+  const p = productos.find(x=>x.id===editandoId); if(!p) return;
+  const cant = parseInt($("cantMov").value)||0;
+  if(cant<=0){ alert("Ingresá una cantidad de cajas."); return; }
+  if(signo<0 && cant > (p.stockCajas||0)){
+    if(!confirm(`Hay ${p.stockCajas||0} cajas. ¿Registrar la salida igual (quedará negativo)?`)) return;
+  }
+  p.stockCajas = (+p.stockCajas||0) + signo*cant;
+  (p.movimientos ??= []).push({fecha:Date.now(), cajas:signo*cant, nota:$("notaMov").value.trim()});
+  await dbGuardar(p);
+  $("notaMov").value = "";
+  pintarStock(p);
+  render();
+}
+
+async function eliminar(){
+  const p = productos.find(x=>x.id===editandoId); if(!p) return;
+  if(!confirm(`¿Eliminar "${p.nombre||p.codigoBarras}"?`)) return;
+  await dbBorrar(p.id);
+  productos = productos.filter(x=>x.id!==p.id);
+  cerrar("modalProducto");
+  render();
+}
+
+/* ---------- Escáner ---------- */
+function iniciarScanner(alLeer){
+  abrir("modalScanner");
+  scanner = new Html5Qrcode("reader");
+  scanner.start({facingMode:"environment"}, {fps:10, qrbox:{width:280,height:160}},
+    codigo => { detenerScanner(); alLeer(codigo.trim()); }
+  ).catch(err=>{ alert("No se pudo abrir la cámara: " + err); detenerScanner(); });
+}
+function detenerScanner(){
+  if(scanner){ const s = scanner; scanner = null; s.stop().catch(()=>{}).finally(()=>s.clear()); }
+  cerrar("modalScanner");
+}
+function escanearAlCampo(){ iniciarScanner(c => $("codigoBarras").value = c); }
+function escanearBusqueda(){
+  iniciarScanner(c=>{
+    if(!abrirPorCodigo(c) && confirm(`El código ${c} no está cargado${contSel?" en "+contSel:""}. ¿Crear producto nuevo?`)) abrirNuevo(c);
+  });
+}
+// Lector de código de barras USB/pistola: escribe en el buscador y da Enter
+$("buscar").addEventListener("keydown", e=>{
+  if(e.key!=="Enter") return;
+  const c = $("buscar").value.trim();
+  if(abrirPorCodigo(c) === true){ $("buscar").value=""; render(); }
+});
+// Busca el código en el contenedor elegido. Si está en varios contenedores, los muestra todos.
+function abrirPorCodigo(c){
+  const todos = productos.filter(x=>x.codigoBarras===c || x.codigoInterno===c);
+  const enSel = contSel ? todos.filter(x=>contDe(x)===contSel) : todos;
+  if(enSel.length===1){ abrirEditar(enSel[0].id); return true; }
+  if(todos.length){
+    if(!enSel.length) contSel = "";
+    $("buscar").value = c; render();
+    return "varios";
+  }
+  return false;
+}
+
+/* ---------- Exportar / importar ---------- */
+function descargar(nombre, contenido, tipo){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([contenido], {type:tipo}));
+  a.download = nombre; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+const hoy = () => new Date().toISOString().slice(0,10);
+
+function exportarBackup(){
+  descargar(`ibragiu-conteiners-${hoy()}.json`, JSON.stringify(productos), "application/json");
+}
+function exportarCSV(){
+  const cab = "contenedor;codigo_barras;codigo_interno;nombre;categoria;unidades_caja;stock_cajas;stock_minimo;stock_unidades";
+  const q = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const filas = productos.slice().sort((a,b)=>ordenCont(contDe(a),contDe(b))||catDe(a).localeCompare(catDe(b),"es")||(a.nombre||"").localeCompare(b.nombre||"","es"))
+    .map(p=>[contDe(p),p.codigoBarras,p.codigoInterno,p.nombre,catDe(p),p.unidadesCaja,p.stockCajas,p.stockMinimo,
+             (+p.stockCajas||0)*(+p.unidadesCaja||1)].map(q).join(";"));
+  descargar(`stock-${hoy()}.csv`, "﻿"+[cab,...filas].join("\n"), "text/csv");
+}
+
+$("archivoBackup").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = async ()=>{
+    try{
+      const lista = JSON.parse(r.result);
+      if(!Array.isArray(lista)) throw 0;
+      if(!confirm(`Importar ${lista.length} productos? Los que tengan el mismo ID se reemplazan.`)) return;
+      for(const p of lista){ if(p && p.id) await dbGuardar(p); }
+      productos = await dbTodos(); render();
+      alert("Copia importada.");
+    }catch{ alert("El archivo no es una copia válida."); }
+    e.target.value = "";
+  };
+  r.readAsText(f);
+});
+
+function parseCSV(texto){
+  const sep = (texto.split("\n")[0].match(/;/g)||[]).length >= (texto.split("\n")[0].match(/,/g)||[]).length ? ";" : ",";
+  const filas = []; let fila = [], campo = "", comillas = false;
+  for(let i=0;i<texto.length;i++){
+    const ch = texto[i];
+    if(comillas){
+      if(ch==='"' && texto[i+1]==='"'){ campo+='"'; i++; }
+      else if(ch==='"') comillas = false;
+      else campo += ch;
+    } else if(ch==='"') comillas = true;
+    else if(ch===sep){ fila.push(campo); campo=""; }
+    else if(ch==="\n"){ fila.push(campo); filas.push(fila); fila=[]; campo=""; }
+    else if(ch!=="\r") campo += ch;
+  }
+  if(campo || fila.length){ fila.push(campo); filas.push(fila); }
+  return filas.filter(f=>f.some(c=>c.trim()));
+}
+
+$("archivoCSV").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = async ()=>{
+    const filas = parseCSV(r.result.replace(/^﻿/,""));
+    const cab = filas.shift().map(h=>h.trim().toLowerCase());
+    const col = n => cab.indexOf(n);
+    let nuevos=0, act=0;
+    for(const f of filas){
+      const v = n => col(n)>=0 ? (f[col(n)]||"").trim() : "";
+      const cb = v("codigo_barras");
+      const cn = v("contenedor") === SIN_CONT ? "" : v("contenedor");
+      let p = cb && productos.find(x=>x.codigoBarras===cb && contDe(x)===(cn||SIN_CONT));
+      const datos = {
+        contenedor: cn, codigoBarras: cb, codigoInterno: v("codigo_interno"), nombre: v("nombre"),
+        categoria: v("categoria"), unidadesCaja: parseInt(v("unidades_caja"))||1,
+        stockMinimo: parseInt(v("stock_minimo"))||0
+      };
+      if(!datos.nombre && !cb && !datos.codigoInterno) continue;
+      const stock = col("stock_cajas")>=0 ? (parseInt(v("stock_cajas"))||0) : null;
+      if(p){
+        Object.assign(p, datos);
+        if(stock!==null && stock!==p.stockCajas){
+          (p.movimientos ??= []).push({fecha:Date.now(), cajas:stock-(+p.stockCajas||0), nota:"Ajuste por importación CSV"});
+          p.stockCajas = stock;
+        }
+        act++;
+      } else {
+        p = {id:nuevoId(), ...datos, foto:null, stockCajas:stock||0,
+             movimientos: stock ? [{fecha:Date.now(), cajas:stock, nota:"Importación CSV"}] : []};
+        productos.push(p); nuevos++;
+      }
+      await dbGuardar(p);
+    }
+    render();
+    alert(`Importación lista: ${nuevos} nuevos, ${act} actualizados.`);
+    e.target.value = "";
+  };
+  r.readAsText(f);
+});
+
+/* ---------- Inicio ---------- */
+["buscar","filtroCat","filtroStock"].forEach(id=>$(id).addEventListener("input", render));
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click", e=>{
+  if(e.target===m){ m.id==="modalScanner" ? detenerScanner() : m.id==="modalEtiqueta" ? cerrarEtiqueta() : cerrar(m.id); }
+}));
+
+/* ---------- Lector de etiquetas impresas (OCR) ----------
+   Lee el código interno impreso en la caja (ej. "MA 90-04") con la cámara,
+   lo compara contra los códigos internos cargados y registra la entrada/salida.
+   Para no fallar: solo acepta códigos que existen, pide la misma lectura en
+   2 cuadros seguidos, corrige confusiones típicas (O/0, I/1, S/5, B/8, Z/2)
+   y siempre muestra el producto antes de mover stock. */
+const etq = {worker:null, stream:null, track:null, activo:false, pausa:false, modo:-1,
+             previo:null, repeticiones:0, bloqueado:null, log:[], linterna:false};
+
+// "Esqueleto" del código: sin espacios ni guiones y con letras confundibles unificadas
+const esqueleto = t => String(t||"").toUpperCase().replace(/[^A-Z0-9]/g,"")
+  .replace(/[OQ]/g,"0").replace(/[IL]/g,"1").replace(/S/g,"5").replace(/B/g,"8").replace(/Z/g,"2");
+
+function levenshtein(a,b){
+  const m=a.length,n=b.length; let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur;
+  }
+  return prev[n];
+}
+
+function etqProductos(){ return productos.filter(p=>p.codigoInterno && (!contSel || contDe(p)===contSel)); }
+
+// Busca en el texto leído el código interno cargado que mejor coincide
+function etqCoincidir(texto){
+  const codigos = {};
+  etqProductos().forEach(p=>{ const k=esqueleto(p.codigoInterno); if(k.length>=3) (codigos[k] ??= []).push(p); });
+  const lineas = String(texto||"").split(/\n+/).map(esqueleto).filter(l=>l.length>=3);
+  if(!lineas.length) return null;
+  const todo = lineas.join("|");
+  // 1) Coincidencia exacta: gana el código más largo contenido en el texto
+  const exactos = Object.keys(codigos).filter(k=>todo.includes(k)).sort((a,b)=>b.length-a.length);
+  if(exactos.length){
+    const largo = exactos[0].length, empatados = exactos.filter(k=>k.length===largo);
+    if(empatados.length===1) return {k:exactos[0], exacto:true, productos:codigos[exactos[0]]};
+    return {ambiguo:empatados.map(k=>({k, productos:codigos[k]}))};
+  }
+  // 2) Coincidencia aproximada (1 carácter de diferencia) para códigos de 5+ caracteres
+  let mejor=[], dMin=2;
+  for(const k of Object.keys(codigos)){
+    if(k.length<5) continue;
+    for(const l of lineas){
+      for(let len=k.length-1; len<=k.length+1; len++){
+        for(let i=0; i+len<=l.length; i++){
+          const d = levenshtein(k, l.substr(i,len));
+          if(d<dMin){ dMin=d; mejor=[k]; } else if(d===dMin && !mejor.includes(k)) mejor.push(k);
+        }
+      }
+    }
+  }
+  if(dMin<=1 && mejor.length===1) return {k:mejor[0], exacto:false, productos:codigos[mejor[0]]};
+  if(dMin<=1 && mejor.length>1) return {ambiguo:mejor.map(k=>({k, productos:codigos[k]}))};
+  return null;
+}
+
+function cargarScript(src){
+  return new Promise((ok,mal)=>{
+    if(document.querySelector(`script[src="${src}"]`)) return ok();
+    const s=document.createElement("script"); s.src=src; s.onload=ok; s.onerror=()=>mal(new Error("No se pudo cargar "+src));
+    document.head.appendChild(s);
+  });
+}
+
+function etqPrepararOCR(){
+  // Una sola carga aunque se llame varias veces (precarga + apertura del lector)
+  if(!etq.cargando) etq.cargando = etqCrearWorker().catch(e=>{ etq.cargando = null; throw e; });
+  return etq.cargando;
+}
+async function etqCrearWorker(){
+  await cargarScript("lib/ocr/tesseract.min.js");
+  const base = new URL("lib/ocr/", location.href).href;
+  const w = await Tesseract.createWorker("eng", 1, {
+    workerPath: base+"worker.min.js", corePath: base, langPath: base.replace(/\/$/,""),
+    gzip: true, workerBlobURL: false, cacheMethod: "none"
+  }, {
+    // Sin diccionario de inglés: los códigos no son palabras y el diccionario los "corrige" mal
+    load_system_dawg: "0", load_freq_dawg: "0"
+  });
+  etq.worker = w;
+  await etq.worker.setParameters({
+    tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-/.: ",
+    tessedit_pageseg_mode: "6",
+    preserve_interword_spaces: "1"
+  });
+  etq.psm = "6";
+}
+
+function etqEstado(html){ $("etqEstado").innerHTML = html; }
+
+async function abrirEtiqueta(){
+  if(!productos.some(p=>p.codigoInterno)){ alert("No hay productos con código interno cargado."); return; }
+  $("etqDonde").textContent = contSel ? "📦 "+contSel : "Todos los contenedores";
+  $("listaInternos").innerHTML = [...new Set(etqProductos().map(p=>p.codigoInterno))].sort()
+    .map(c=>`<option value="${esc(c)}">`).join("");
+  try{ $("etqAuto").checked = localStorage.getItem("ibragiu_etq_auto")==="1"; }catch{}
+  $("etqResultado").innerHTML = ""; etqPintarLog();
+  etqModo(etq.modo);
+  abrir("modalEtiqueta");
+  etq.activo = true; etq.pausa = false; etq.previo = null; etq.repeticiones = 0; etq.linea = null; etq.miniatura = null;
+  etq.bloqueado = null; etq.movimiento = 0;
+  try{ localStorage.setItem("ibragiu_ocr_usado","1"); }catch{}
+  etqEstado("Abriendo cámara…");
+  const preparando = etqPrepararOCR();   // se carga en paralelo con la cámara
+  preparando.catch(()=>{});
+  try{
+    etq.stream = await navigator.mediaDevices.getUserMedia({audio:false,
+      video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}});
+  }catch(e){
+    etqEstado("No se pudo abrir la cámara. Podés escribir el código abajo."); return;
+  }
+  if(!etq.activo){ etqApagarCamara(); return; }
+  const v = $("etqVideo"); v.srcObject = etq.stream; await v.play().catch(()=>{});
+  etq.track = etq.stream.getVideoTracks()[0];
+  const cap = etq.track.getCapabilities ? etq.track.getCapabilities() : {};
+  if(cap.focusMode && cap.focusMode.includes("continuous"))
+    etq.track.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{});
+  $("etqLinterna").style.display = cap.torch ? "" : "none";
+  // Zoom de cámara (si la tablet lo permite): ayuda a leer etiquetas sin acercarse tanto
+  const zoom = $("etqZoom");
+  if(cap.zoom && cap.zoom.max > cap.zoom.min){
+    zoom.min = cap.zoom.min; zoom.max = Math.min(cap.zoom.max, cap.zoom.min*4); zoom.step = cap.zoom.step || 0.1;
+    let guardado = null; try{ guardado = parseFloat(localStorage.getItem("ibragiu_zoom")); }catch{}
+    zoom.value = guardado && guardado>=+zoom.min && guardado<=+zoom.max ? guardado : cap.zoom.min;
+    etq.track.applyConstraints({advanced:[{zoom:+zoom.value}]}).catch(()=>{});
+    zoom.parentElement.style.display = "";
+  } else zoom.parentElement.style.display = "none";
+  const ajustar = ()=>{
+    if(!v.videoWidth) return;
+    const r = v.videoWidth / v.videoHeight;
+    $("etqVisor").style.aspectRatio = `${v.videoWidth} / ${v.videoHeight}`;
+    $("etqVisor").style.maxWidth = `calc(52vh * ${r})`;
+  };
+  v.onloadedmetadata = ajustar; ajustar();
+  if(!etq.worker) etqEstado("Cargando lector de texto…");
+  try{ await preparando; }
+  catch(e){ etqEstado("No se pudo cargar el lector de texto. Revisá la conexión la primera vez."); return; }
+  etqEstado("Centrá el código de la etiqueta dentro del recuadro");
+  etqCiclo();
+}
+
+function etqModo(m){
+  etq.modo = m;
+  $("modoSalida").classList.toggle("activo", m<0);
+  $("modoEntrada").classList.toggle("activo", m>0);
+  if(etq.pendiente) etqMostrar(etq.pendiente);
+}
+
+async function etqLinterna(){
+  if(!etq.track) return;
+  etq.linterna = !etq.linterna;
+  etq.track.applyConstraints({advanced:[{torch:etq.linterna}]}).catch(()=>{});
+}
+
+function etqApagarCamara(){
+  if(etq.stream) etq.stream.getTracks().forEach(t=>t.stop());
+  etq.stream = null; etq.track = null; etq.linterna = false;
+  $("etqVideo").srcObject = null;
+}
+
+function cerrarEtiqueta(){
+  etq.activo = false; etq.pendiente = null;
+  etqApagarCamara();
+  cerrar("modalEtiqueta");
+}
+
+// Recorta la zona del recuadro y la prepara (gris + contraste) para leer mejor
+function etqCapturar(completo=false){
+  const v = $("etqVideo"); if(!v.videoWidth) return null;
+  const [sx,sy,sw,sh] = completo ? [0,0,v.videoWidth,v.videoHeight]
+    : [v.videoWidth*.08, v.videoHeight*.32, v.videoWidth*.84, v.videoHeight*.36];
+  // Resolución nativa (sin agrandar): la 1ª pasada se achica y la 2ª recorta de acá con detalle
+  const escala = Math.min(1, 1600/sw);
+  const c = document.createElement("canvas");
+  c.width = Math.round(sw*escala); c.height = Math.round(sh*escala);
+  const ctx = c.getContext("2d", {willReadFrequently:true});
+  ctx.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  const img = ctx.getImageData(0,0,c.width,c.height), d = img.data;
+  let min=255, max=0;
+  for(let i=0;i<d.length;i+=4){
+    const g = d[i]*.299 + d[i+1]*.587 + d[i+2]*.114; d[i]=g;
+    if(g<min) min=g; if(g>max) max=g;
+  }
+  const k = 255/Math.max(40, max-min);
+  for(let i=0;i<d.length;i+=4){ const g=(d[i]-min)*k; d[i]=d[i+1]=d[i+2]=g; }
+  ctx.putImageData(img,0,0);
+  return c;
+}
+
+// Lectura en 2 pasos:
+// 1) lee la zona achicada (rápido) y ubica la línea del código;
+// 2) endereza esa línea (las etiquetas suelen estar torcidas) y la lee en buena resolución.
+// Si las dos lecturas dan el mismo código, se confirma en el mismo cuadro.
+// La línea queda "seguida": en los cuadros siguientes solo se lee esa franja (mucho más rápido).
+const etqClave = t => { if(!t) return null; const r = etqCoincidir(t);
+  if(r && !r.ambiguo) return r.k; if(r) return null; const n = etqExtraerCodigo(t); return n ? "N:"+esqueleto(n) : null; };
+
+async function etqLeer(zona){
+  // Camino rápido: releer la línea encontrada en el cuadro anterior
+  if(etq.linea && Date.now()-etq.linea.t < 2500){
+    const t = await etqLeerLinea(zona, etq.linea);
+    if(t && etqClave(t)){ etq.linea.t = Date.now(); return {texto:t, doble:false}; }
+    etq.linea = null;
+  }
+  const f = Math.min(1, 900/zona.width);
+  let chica = zona;
+  if(f < 1){
+    chica = document.createElement("canvas");
+    chica.width = Math.round(zona.width*f); chica.height = Math.round(zona.height*f);
+    const cx = chica.getContext("2d"); cx.imageSmoothingQuality = "high"; cx.drawImage(zona,0,0,chica.width,chica.height);
+  }
+  await etqPsm("6");
+  const {data} = await etq.worker.recognize(chica);
+  const lineas = (data.lines||[]).filter(l=>l.text && l.text.trim());
+  const elegida = lineas.find(l=>ROTULO_CODIGO.test(l.text.toUpperCase())) || lineas.find(l=>etqCoincidir(l.text))
+               || lineas.find(l=>etqExtraerCodigo(l.text));
+  if(!elegida || !elegida.baseline || !elegida.baseline.has_baseline) return {texto:data.text, doble:false};
+  const b = elegida.bbox, bl = elegida.baseline;
+  const ang = Math.atan2(bl.y1-bl.y0, bl.x1-bl.x0);
+  if(Math.abs(ang) > 0.35) return {texto:data.text, doble:false};
+  const w = (b.x1-b.x0)/f, altoBox = (b.y1-b.y0)/f;
+  const linea = {cx:(b.x0+b.x1)/2/f, cy:(b.y0+b.y1)/2/f, w, ang,
+                 alto:Math.max(14, altoBox - Math.abs(Math.tan(ang))*w), t:Date.now()};
+  const t2 = await etqLeerLinea(zona, linea);
+  const k2 = etqClave(t2);
+  if(k2){
+    etq.linea = linea;
+    // Doble lectura: la línea de la 1ª pasada coincide con la enderezada
+    return {texto:t2, doble: etqClave(elegida.text)===k2};
+  }
+  return {texto:data.text, doble:false};
+}
+
+async function etqPsm(m){ if(etq.psm!==m){ await etq.worker.setParameters({tessedit_pageseg_mode:m}); etq.psm = m; } }
+
+async function etqLeerLinea(zona, L){
+  const esc2 = Math.max(0.6, Math.min(3, 48/L.alto));
+  const c = document.createElement("canvas");
+  c.width = Math.round((L.w/Math.cos(L.ang) + L.alto*1.5)*esc2); c.height = Math.round(L.alto*2.2*esc2);
+  const ctx = c.getContext("2d", {willReadFrequently:true});
+  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,c.width,c.height);
+  ctx.imageSmoothingQuality = "high";
+  ctx.translate(c.width/2, c.height/2); ctx.scale(esc2, esc2); ctx.rotate(-L.ang);
+  ctx.drawImage(zona, -L.cx, -L.cy);
+  etqEnfocar(c);
+  await etqPsm("7");
+  const r = await etq.worker.recognize(c);
+  return (r.data.text||"").trim();
+}
+
+// Compara una miniatura con la del cuadro anterior: si la cámara se mueve, no vale la pena leer
+function etqSeMueve(zona){
+  const m = document.createElement("canvas"); m.width = 48; m.height = 20;
+  const ctx = m.getContext("2d", {willReadFrequently:true}); ctx.drawImage(zona,0,0,48,20);
+  const d = ctx.getImageData(0,0,48,20).data, g = new Uint8Array(48*20);
+  for(let i=0;i<g.length;i++) g[i] = d[i*4];
+  const prev = etq.miniatura; etq.miniatura = g;
+  if(!prev) return false;
+  let dif = 0; for(let i=0;i<g.length;i++) dif += Math.abs(g[i]-prev[i]);
+  return dif/g.length > 14;
+}
+
+// Realce de bordes (nitidez) sobre una imagen en grises
+function etqEnfocar(c){
+  const ctx = c.getContext("2d"), img = ctx.getImageData(0,0,c.width,c.height), d = img.data, W = c.width, H = c.height;
+  const g = new Float32Array(W*H);
+  for(let i=0;i<W*H;i++) g[i] = d[i*4];
+  for(let y=1;y<H-1;y++) for(let x=1;x<W-1;x++){
+    const i=y*W+x, v = 5*g[i]-g[i-1]-g[i+1]-g[i-W]-g[i+W];
+    const o = Math.max(0, Math.min(255, g[i] + (v-g[i])*0.6));
+    d[i*4]=d[i*4+1]=d[i*4+2]=o;
+  }
+  ctx.putImageData(img,0,0);
+}
+
+async function etqCiclo(){
+  while(etq.activo){
+    // Si se canceló la carga de un producto nuevo, volver a leer
+    if(etq.creando && !$("modalProducto").classList.contains("open")){
+      etq.bloqueado = {k:"N:"+esqueleto(etq.creando), visto:Date.now()};
+      etq.creando = null; etqDescartar();
+    }
+    let espera = 60;
+    if(!etq.pausa && etq.worker){
+      const c = etqCapturar();
+      if(c && etqSeMueve(c)){
+        etq.linea = null; espera = 120;
+        // Un movimiento claro (varios cuadros) = pasaste a otra caja: se puede volver a leer el mismo código
+        if(++etq.movimiento >= 3 && etq.bloqueado) etq.bloqueado = null;
+        etqEstado(etq.bloqueado ? "✔ Listo. Pasá a la próxima caja" : "Mantené la tablet quieta…");
+      }
+      else if(c){
+        etq.movimiento = 0;
+        try{
+          const {texto, doble} = await etqLeer(c);
+          if(etq.activo && !etq.pausa) etqProcesar(texto, doble);
+        }catch(e){}
+      }
+    }
+    await new Promise(r=>setTimeout(r,espera));
+  }
+}
+
+function etqProcesar(texto, doble=false){
+  const suma = doble ? 2 : 1;
+  etq.ultimoTexto = texto;
+  const r = etqCoincidir(texto);
+  const nuevo = !r ? etqExtraerCodigo(texto) : null;
+  const visto = (texto||"").replace(/\s+/g," ").trim().slice(0,40);
+  const kActual = r && !r.ambiguo ? r.k : nuevo ? "N:"+esqueleto(nuevo) : null;
+  // Evitar contar dos veces la misma caja: el código queda bloqueado hasta que deje de verse
+  if(etq.bloqueado){
+    if(kActual===etq.bloqueado.k){ etq.bloqueado.visto = Date.now(); etqEstado("✔ Listo. Pasá a la próxima caja"); return; }
+    if(Date.now()-etq.bloqueado.visto > 1200) etq.bloqueado = null;
+  }
+  if(!r && nuevo){
+    // Código con formato válido que no está cargado: 3 lecturas iguales y se ofrece crearlo
+    etq.repeticiones = (etq.previo===kActual ? etq.repeticiones : 0) + suma;
+    etq.previo = kActual;
+    if(etq.repeticiones < 3){ etqEstado(`Leyendo código nuevo… <b>${esc(nuevo)}</b>`); return; }
+    etq.pausa = true; etq.previo = null; etq.repeticiones = 0;
+    if(navigator.vibrate) navigator.vibrate(80);
+    etqOfrecerNuevo(nuevo, texto);
+    return;
+  }
+  if(!r){
+    etq.previo = null; etq.repeticiones = 0; $("etqGuia").classList.remove("ok");
+    etqEstado(visto ? `Leyendo… <b>${esc(visto)}</b>` : "Centrá el código de la etiqueta dentro del recuadro");
+    return;
+  }
+  // Lectura parcial que coincide con varios códigos (ej. "MA 90-0"): seguir leyendo
+  if(r.ambiguo){
+    etq.previo = null; etq.repeticiones = 0;
+    etqEstado(`Acercá un poco o centrá mejor… <b>${esc(visto)}</b>`); return;
+  }
+  const clave = r.k;
+  etq.repeticiones = (etq.previo===clave ? etq.repeticiones : 0) + suma;
+  etq.previo = clave;
+  $("etqGuia").classList.add("ok");
+  if(etq.repeticiones < 2){ etqEstado(`Confirmando… <b>${esc(visto)}</b>`); return; }
+  etq.pausa = true; etq.previo = null; etq.repeticiones = 0;
+  if(navigator.vibrate) navigator.vibrate(80);
+  etqMostrar(r);
+}
+
+function etqMostrar(r){
+  etq.pendiente = r;
+  const cant = Math.max(1, parseInt($("etqCant").value)||1);
+  if(r.ambiguo || r.productos.length>1){
+    const ops = r.ambiguo ? r.ambiguo.flatMap(a=>a.productos) : r.productos;
+    etqEstado("Hay más de una opción, elegí la correcta");
+    $("etqResultado").innerHTML = `<div class="aviso">La etiqueta coincide con más de un producto. Tocá el correcto:</div>
+      <div class="opciones">${ops.map(p=>`<button class="sec" onclick="etqElegir('${p.id}')">${esc(p.codigoInterno)} · ${esc(p.nombre||"")} · 📦 ${esc(contDe(p))}</button>`).join("")}
+      <button class="danger" onclick="etqDescartar()">Ninguno</button></div>`;
+    return;
+  }
+  const p = r.productos[0], actual = +p.stockCajas||0, despues = actual + etq.modo*cant;
+  const falta = etq.modo<0 && despues<0;
+  if($("etqAuto").checked && r.exacto && !falta){ etqAplicar(p.id); return; }
+  etqEstado(r.exacto ? "Etiqueta leída" : "Lectura aproximada: verificá que sea el producto correcto");
+  $("etqResultado").innerHTML = `<div class="hallado">
+    ${p.foto ? `<img src="${p.foto}" alt="">` : `<div class="sinf">Sin foto</div>`}
+    <div class="det">
+      <div class="codInt">${esc(p.codigoInterno)}</div>
+      <div class="nom">${esc(p.nombre||"")}</div>
+      <div class="meta">📦 ${esc(contDe(p))} · ${esc(catDe(p))}</div>
+      <div class="cuenta">${actual} → <b>${despues}</b> cajas</div>
+      ${!r.exacto ? `<div class="aviso">Leyó algo parecido. Confirmá que la etiqueta diga <b>${esc(p.codigoInterno)}</b>.</div>` : ""}
+      ${falta ? `<div class="aviso">No alcanza el stock: hay ${actual} cajas.</div>` : ""}
+    </div>
+    <div class="botones">
+      <button class="${etq.modo<0?"danger":""}" style="${etq.modo>0?"background:var(--ok)":""}" onclick="etqAplicar('${p.id}')">
+        ${etq.modo<0?"− Salida":"+ Entrada"} ${cant} ${cant===1?"caja":"cajas"}</button>
+      <button class="sec" onclick="etqDescartar()">No es este</button>
+      ${!r.exacto && etqExtraerCodigo(etq.ultimoTexto) ? `<button class="sec" onclick="etqCrear(etqExtraerCodigo(etq.ultimoTexto), etq.ultimoTexto)">Es nuevo: ${esc(etqExtraerCodigo(etq.ultimoTexto))}</button>` : ""}
+    </div>
+  </div>`;
+}
+
+function etqElegir(id){
+  const p = productos.find(x=>x.id===id); if(!p) return;
+  etqMostrar({k:esqueleto(p.codigoInterno), exacto:true, productos:[p]});
+}
+
+function etqDescartar(){
+  etq.pendiente = null; $("etqResultado").innerHTML = "";
+  etq.pausa = false; etqEstado("Centrá el código de la etiqueta dentro del recuadro");
+}
+
+async function etqAplicar(id){
+  const p = productos.find(x=>x.id===id); if(!p) return;
+  const cant = Math.max(1, parseInt($("etqCant").value)||1), cajas = etq.modo*cant;
+  if(cajas<0 && (+p.stockCajas||0)+cajas<0 &&
+     !confirm(`Hay ${+p.stockCajas||0} cajas de ${p.codigoInterno}. ¿Registrar la salida igual?`)) return;
+  const mov = {fecha:Date.now(), cajas, nota:"Lectura de etiqueta"};
+  p.stockCajas = (+p.stockCajas||0) + cajas;
+  (p.movimientos ??= []).push(mov);
+  await dbGuardar(p);
+  etq.log.unshift({id:p.id, fecha:mov.fecha, cajas, codigo:p.codigoInterno, nombre:p.nombre, stock:p.stockCajas});
+  etq.bloqueado = {k:esqueleto(p.codigoInterno), visto:Date.now()};
+  etq.pendiente = null; $("etqResultado").innerHTML = "";
+  etqPintarLog(); render();
+  if(navigator.vibrate) navigator.vibrate([60,60,60]);
+  etqEstado(`✔ ${cajas>0?"+":""}${cajas} ${p.codigoInterno} · quedan ${p.stockCajas} cajas`);
+  etq.pausa = false;
+}
+
+async function etqDeshacer(fecha){
+  const e = etq.log.find(x=>x.fecha===fecha); if(!e) return;
+  const p = productos.find(x=>x.id===e.id);
+  if(p){
+    p.stockCajas = (+p.stockCajas||0) - e.cajas;
+    p.movimientos = (p.movimientos||[]).filter(m=>m.fecha!==fecha);
+    await dbGuardar(p);
+  }
+  etq.log = etq.log.filter(x=>x!==e);
+  etqPintarLog(); render();
+}
+
+function etqPintarLog(){
+  $("etqLog").innerHTML = etq.log.length ? etq.log.slice(0,30).map(e=>
+    `<div><span><span class="${e.cajas>0?"ent":"sal"}">${e.cajas>0?"+":""}${e.cajas}</span>
+      <b>${esc(e.codigo)}</b> ${esc(e.nombre||"")} · quedan ${e.stock} · ${new Date(e.fecha).toLocaleTimeString("es-AR")}</span>
+      <button class="sec" onclick="etqDeshacer(${e.fecha})">Deshacer</button></div>`).join("")
+    : "<div>Las lecturas de esta sesión aparecen acá.</div>";
+}
+
+/* ---------- Códigos nuevos (que todavía no están cargados) ---------- */
+// Rótulo que precede al código en la etiqueta: "Código:", "CÓDIGO", "Codigo", "Cód.", "Code",
+// "Art.", "Item No". Tolera la Ó leída como O/0/6/Q o perdida ("CDIGO") y letras de más.
+const ROTULO_CODIGO = /(?:C[OÓÒ0Q6]?D[A-ZÍÓ]*|ART[A-ZÍ]*|ITEM\s*N[O0º°]?)\s*[:.;]?\s*/;
+// Saca el código de la etiqueta. Primero busca el rótulo (ver ROTULO_CODIGO),
+// si no, algo con forma de código: letras + números + guion + números (ej. MA103-27, MA 90-04)
+function etqExtraerCodigo(texto){
+  const T = String(texto||"").toUpperCase();
+  const digitos = d => d.replace(/[OQD]/g,"0").replace(/[IL]/g,"1").replace(/S/g,"5").replace(/B/g,"8").replace(/Z/g,"2");
+  const normal = (letras, sep, a, b) => {
+    // "MAIO3" → letras "MA" + números "103" (I/O/L/Q al final de las letras suelen ser 1/0)
+    const m = !sep && letras.match(/^([A-Z]+?)([IOLQ]+)$/);
+    if(m){ letras = m[1]; a = m[2]+a; }
+    return `${letras}${sep?" ":""}${digitos(a)}-${digitos(b)}`;
+  };
+  const patron = /\b([A-Z]{1,4})( ?)([0-9OQDILSBZ]{1,5}) ?[-–] ?([0-9OQDILSBZ]{1,5})\b/;
+  for(const l of T.split(/\n+/)){
+    const m = l.match(new RegExp(ROTULO_CODIGO.source + "(.+)$"));
+    if(m){ const c = m[1].match(patron); if(c && /\d/.test(c[3]+c[4])) return normal(c[1],c[2],c[3],c[4]); }
+  }
+  const c = T.replace(/\n/g," ").match(patron);
+  if(c && /\d/.test(c[3]) && /\d/.test(c[4])) return normal(c[1],c[2],c[3],c[4]);
+  return null;
+}
+function etqExtraerUnidades(texto){
+  const T = String(texto||"").toUpperCase();
+  const m = T.match(/UNIDA[A-Z]*\s*P[O0]R\s*CAJA\s*[:.]?\s*(\d{1,5})/) || T.match(/(?:QTY|CANT[A-Z]*)\s*[:.]?\s*(\d{1,5})/)
+         || T.match(/(\d{1,5})\s*PC5?S?\b/);
+  return m ? parseInt(m[1]) : null;
+}
+
+async function etqOfrecerNuevo(codigo, texto){
+  etq.pendiente = null;
+  etqEstado(`Código nuevo: <b>${esc(codigo)}</b>`);
+  let unidades = etqExtraerUnidades(texto);
+  // Lee la etiqueta entera para buscar "Unidad por caja"
+  if(!unidades && etq.worker){
+    try{ const c = etqCapturar(true); if(c){ await etqPsm("6"); const {data} = await etq.worker.recognize(c); unidades = etqExtraerUnidades(data.text); } }catch{}
+  }
+  etq.nuevoUnidades = unidades;
+  const cant = Math.max(1, parseInt($("etqCant").value)||1);
+  $("etqResultado").innerHTML = `<div class="hallado nuevo">
+    <div class="sinf">🆕</div>
+    <div class="det">
+      <span class="badge">NO ESTÁ CARGADO</span>
+      <div class="codInt">${esc(codigo)}</div>
+      <div class="meta">${unidades ? `Unidades por caja: <b>${unidades}</b> · ` : ""}📦 ${esc(contSel && contSel!==SIN_CONT ? contSel : "elegí el contenedor")}</div>
+      <div class="meta">Verificá que el código esté bien leído antes de crearlo.</div>
+    </div>
+    <div class="botones">
+      <button style="background:var(--ok)" onclick="etqCrear('${esc(codigo)}')">+ Crear producto${etq.modo>0?` con ${cant} ${cant===1?"caja":"cajas"}`:""}</button>
+      <button class="sec" onclick="etqIgnorarNuevo('${esc(codigo)}')">Seguir leyendo</button>
+    </div>
+  </div>`;
+}
+
+function etqIgnorarNuevo(codigo){
+  etq.bloqueado = {k:"N:"+esqueleto(codigo), visto:Date.now()};
+  etqDescartar();
+}
+
+function etqCrear(codigo, texto){
+  if(!codigo) return;
+  etq.pausa = true; etq.creando = codigo;
+  const unidades = (texto && etqExtraerUnidades(texto)) || etq.nuevoUnidades || 1;
+  abrirNuevo("");
+  $("tituloProducto").textContent = "Nuevo producto desde etiqueta";
+  $("codigoInterno").value = codigo;
+  $("unidadesCaja").value = unidades;
+  $("stockInicial").value = etq.modo>0 ? Math.max(1, parseInt($("etqCant").value)||1) : 0;
+  setTimeout(()=>$("nombre").focus(), 50);
+}
+
+// Se llama al guardar un producto: si venía del lector, lo registra y sigue leyendo
+function etqTrasGuardar(p, esNuevo){
+  if(!etq.activo || !etq.creando || !esNuevo) return;
+  etq.creando = null; etq.nuevoUnidades = null;
+  const mov = (p.movimientos||[])[0];
+  if(mov) etq.log.unshift({id:p.id, fecha:mov.fecha, cajas:mov.cajas, codigo:p.codigoInterno, nombre:p.nombre, stock:p.stockCajas});
+  etq.bloqueado = {k:esqueleto(p.codigoInterno), visto:Date.now()};
+  $("listaInternos").innerHTML = [...new Set(etqProductos().map(x=>x.codigoInterno))].sort().map(c=>`<option value="${esc(c)}">`).join("");
+  etqPintarLog();
+  $("etqResultado").innerHTML = "";
+  etqEstado(`✔ Creado ${esc(p.codigoInterno)}${p.stockCajas?` con ${p.stockCajas} cajas`:""}`);
+  etq.pausa = false;
+}
+
+function etqBuscarManual(){
+  const t = $("etqManual").value.trim(); if(!t) return;
+  const r = etqCoincidir(t);
+  if(!r){
+    if(confirm(`El código "${t}" no está cargado${contSel?" en "+contSel:""}. ¿Crear un producto nuevo con ese código?`)){
+      $("etqManual").value = ""; etqCrear(t.toUpperCase().replace(/\s*-\s*/g,"-"));
+    }
+    return;
+  }
+  etq.pausa = true; $("etqManual").value = "";
+  etqMostrar(r.ambiguo ? r : {...r, exacto:true});
+}
+$("etqManual").addEventListener("keydown", e=>{ if(e.key==="Enter") etqBuscarManual(); });
+$("etqAuto").addEventListener("change", e=>{ try{ localStorage.setItem("ibragiu_etq_auto", e.target.checked?"1":"0"); }catch{} });
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && etq.activo) cerrarEtiqueta(); });
+
+/* ---------- App instalable (Android / tablet) ---------- */
+let eventoInstalar = null;
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault(); eventoInstalar = e; $("btnInstalar").style.display = "";
+});
+window.addEventListener("appinstalled", ()=>{ $("btnInstalar").style.display = "none"; });
+async function instalarApp(){
+  if(!eventoInstalar) return;
+  eventoInstalar.prompt(); await eventoInstalar.userChoice;
+  eventoInstalar = null; $("btnInstalar").style.display = "none";
+}
+if("serviceWorker" in navigator && location.protocol !== "file:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+// Pide al navegador que no borre los datos guardados
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+
+// Precarga del lector de etiquetas si ya se usó antes: así abre al instante
+function etqPrecargar(){
+  let usado = false; try{ usado = localStorage.getItem("ibragiu_ocr_usado")==="1"; }catch{}
+  if(usado && productos.some(p=>p.codigoInterno)) setTimeout(()=>etqPrepararOCR().catch(()=>{}), 2500);
+}
+
+(async ()=>{
+  db = await abrirDB();
+  productos = await dbTodos();
+  render();
+  etqPrecargar();
+})();
+</script>
+</body>
+</html>

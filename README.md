@@ -12,6 +12,12 @@ Funciona sin internet una vez instalada y guarda todo en el teléfono.
 - **Fichas**: a cualquier producto le podés agregar foto, descripción, características
   (una por línea, `Marca: Arcor`) y marcarlo como ★ destacado.
   **Las fichas se conservan cuando actualizás la lista de precios.**
+- **Sumar productos**: desde cada producto, *➕ Sumar a la cuenta*. En la pestaña 🧮 Sumar se ve el total
+  (y en efectivo), se cambian cantidades con − / + y se puede enviar por WhatsApp.
+- **Etiquetas de precio** en hoja A4: desde cada producto, *🏷️ Agregar a la hoja de precios*.
+  Se acumulan de a 18 por hoja (2 × 9, de 75 × 30 mm) y en la pestaña 🏷️ Etiquetas se ven e imprimen
+  como PDF desde el menú Compartir → Imprimir (AirPrint) o la app HP Smart.
+  (`window.print()` no funciona en el iPhone con la app instalada en la pantalla de inicio.)
 - **Copia de seguridad** de las fichas (con fotos) en archivos `.json` para guardar en Archivos/iCloud
   o pasar a otro teléfono:
   - *Copia de lo nuevo*: sólo lo agregado o cambiado desde la última copia (rápida, para hacer seguido).
@@ -55,3 +61,20 @@ Si los códigos se ven como `7,79E+12` en Excel, formateá esa columna como *Tex
 - `vendor/` — librerías de lectura de códigos (html5-qrcode) y de Excel (SheetJS)
 - `sw.js`, `manifest.webmanifest`, `icons/` — instalación y uso sin internet
 - `app.py` — versión anterior en Streamlit (no se usa)
+
+---
+
+# Mis gastos (`/gastos/`)
+
+App para anotar gastos e ingresos del mes, con metas de ahorro, presupuesto por categoría
+y carga rápida escribiendo o dictando ("15 mil en el súper, 3500 en el kiosco").
+Queda en `https://<tu-usuario>.github.io/verificador-precios2/gastos/`.
+
+- Los datos se guardan **sólo en el teléfono**. `datos.js` trae una carga inicial **cifrada** (AES-GCM);
+  la primera vez la app pide la clave para abrirla. Sin la clave no se puede leer.
+- **Ajustes → Guardar copia de seguridad** baja un `.json`; con **Importar copia** se recupera
+  (también sirve para pasar los datos de la versión de Claude o a otro teléfono).
+- Funciona sin internet una vez instalada (Safari → Compartir → Agregar a pantalla de inicio).
+- La pestaña *Tarjeta* (leer el PDF del resumen) sólo aparece dentro de Claude, porque usa IA.
+- **Anotar rápido:** la barra de abajo siempre está a mano. Escribí o dictá “4000 panadería” y Enter.
+  Los botones de arriba de la barra repiten tus gastos de siempre con un toque, y cada anotación se puede deshacer.

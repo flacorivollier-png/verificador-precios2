@@ -463,3 +463,34 @@ input[type=checkbox] { accent-color: var(--verde); }
 /* ---------- configuración de precios ---------- */
 .fila-config { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; flex-wrap: wrap; }
 .fila-config input { width: 64px; font-size: 16px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--borde); background: var(--fondo); color: var(--texto); text-align: center; }
+
+/* ---------- etiquetas de precio (hoja A4) ---------- */
+.tab { position: relative; }
+.badge {
+  position: absolute; top: 4px; left: 50%; margin-left: 8px;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--rojo); color: #fff; font-size: 11px; line-height: 18px; font-weight: 700;
+}
+.badge.oculto { display: none; }
+.tarjeta .btn-etiqueta { width: 100%; margin-top: 8px; }
+.btn:disabled { opacity: .45; }
+.previa-hojas { margin-top: 14px; }
+.quitar-et { width: 40px !important; min-width: 40px; height: 40px; padding: 0; margin: 0 0 0 6px; }
+
+.hoja-previa { display: block; width: 100%; height: auto; margin-bottom: 12px; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.18); background: #fff; }
+
+/* ---------- cuenta (sumar productos) ---------- */
+.total-cuenta { text-align: center; }
+.total-cuenta .precio { margin-top: 4px; }
+.aviso-cuenta { margin-top: 8px; font-size: 13px; color: var(--rojo); }
+.item-cuenta { cursor: default; gap: 8px; }
+.item-cuenta .txt { min-width: 0; }
+.item-cuenta .cant { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 17px; }
+.item-cuenta .cant span { min-width: 18px; text-align: center; }
+.btn-cant {
+  width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--borde);
+  background: var(--panel); color: var(--texto); font-size: 20px; line-height: 1; padding: 0;
+}
+.item-cuenta .p.sub { font-size: 18px; min-width: 72px; text-align: right; }
+#vista-cuenta .fila-botones { margin-top: 12px; }
+.tab span { white-space: nowrap; }

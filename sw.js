@@ -1,7 +1,7 @@
 /* Service worker: permite usar la app sin internet.
  * Estrategia "red primero": si hay conexión se baja la versión nueva,
  * si no, se usa la copia guardada. Cambiar CACHE al publicar cambios grandes. */
-const CACHE = 'verificador-v14';
+const CACHE = 'verificador-v20';
 const ARCHIVOS = [
   './',
   './index.html',
@@ -11,6 +11,8 @@ const ARCHIVOS = [
   './icons/portada.jpg',
   './js/importar.js',
   './js/app.js',
+  './js/etiquetas.js',
+  './js/cuenta.js',
   './vendor/barcode-detector.js',
   './vendor/zxing_reader.wasm',
   './js/escaner.js',
@@ -20,6 +22,7 @@ const ARCHIVOS = [
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
   './icons/logo-guille.png',
+  './icons/logo-etiqueta.png',
 ];
 
 self.addEventListener('install', e => {
@@ -29,7 +32,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('verificador-') && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
