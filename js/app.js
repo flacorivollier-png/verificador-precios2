@@ -288,9 +288,6 @@ async function mostrarProducto(p) {
       Object.entries(p.otros).map(([k, v]) => h('div', null, k + ': ' + v))));
   }
   let archivoFoto = null;
-  if (p.codigo && porCodigo.has(p.codigo)) {
-    tarjeta.append(h('button', { class: 'btn btn-verde btn-presu', type: 'button', onclick: () => Presupuesto.agregar(p) }, '🧾 Agregar al presupuesto'));
-  }
   tarjeta.append(h('div', { class: 'acciones-tarjeta' },
     h('button', { class: 'btn btn-whatsapp', type: 'button', onclick: () => compartir(p, archivoFoto) }, '💬 Compartir'),
     h('button', { class: 'btn btn-gris', type: 'button', onclick: () => abrirFicha(p.codigo) },
@@ -432,7 +429,6 @@ function irA(vista) {
   document.querySelectorAll('.vista').forEach(v => v.classList.toggle('activa', v.id === 'vista-' + vista));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('activa', t.dataset.vista === vista));
   if (vista !== 'consultar') cerrarScanner();
-  if (vista === 'presupuesto') Presupuesto.render();
   if (vista === 'fichas') mostrarSolapaFichas($('#segParaFoto').classList.contains('activo') ? 'foto' : 'ficha');
 }
 
@@ -902,7 +898,6 @@ async function iniciar() {
   document.addEventListener('acceso-listo', verUsuario);
   verUsuario();
   Escaner.precargar();
-  Presupuesto.iniciar().catch(() => {});
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   await carga;
