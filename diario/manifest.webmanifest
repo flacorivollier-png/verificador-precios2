@@ -16,6 +16,7 @@
   ],
   "shortcuts": [
     {"name": "Calendario", "url": "./#calendario"},
-    {"name": "Entradas", "url": "./#entradas"}
+    {"name": "Entradas", "url": "./#entradas"},
+    {"name": "Mapa", "url": "./#mapa"}
   ]
 }
