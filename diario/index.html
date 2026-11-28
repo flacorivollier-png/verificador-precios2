@@ -356,6 +356,10 @@ main{padding-bottom:calc(120px + var(--safe-b))}
 .mk.dot b{position:static;font-size:16px;text-shadow:none}
 .mk.dot svg.i{width:20px;height:20px}
 .leaflet-container{font-family:'Nunito',sans-serif}
+.leaflet-tile-pane{filter:saturate(.7) contrast(.95) brightness(1.04)}
+:root[data-theme=dark] .leaflet-tile-pane{filter:invert(.92) hue-rotate(180deg) saturate(.55) brightness(.95)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .leaflet-tile-pane{filter:invert(.92) hue-rotate(180deg) saturate(.55) brightness(.95)}}
+.edc h2,.edc h3{font-family:inherit}
 .pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .pgrid button{aspect-ratio:1;border-radius:12px;overflow:hidden;padding:0}
 .pgrid img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1033,8 +1037,7 @@ $('#bPrintAll').onclick=()=>printEntries(entries);
 let lmap=null,mlayer=null,mItems=[],firstFit=true,pkMap=null,pkCb=null,meDot=null;
 const itemCache=new Map();
 async function ensureLeaflet(){await loadCSS(LCSS);await loadJS(LJS)}
-const tileURL=()=>darkUI()?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-const addTiles=m=>L.tileLayer(tileURL(),{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap · © CARTO'}).addTo(m);
+const addTiles=m=>L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© colaboradores de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(m);
 function collectItems(){const out=[];for(const e of entries){if(isBlank(e))continue;
   let c=itemCache.get(e.id);if(!c||c.u!==e.updated||c.h!==e.html.length){const d=new DOMParser().parseFromString('<body>'+e.html+'</body>','text/html');const ps=[];
    d.querySelectorAll('figure.ph[data-lat]').forEach(f=>{const lat=+f.dataset.lat,lon=+f.dataset.lon;if(!isFinite(lat)||!isFinite(lon))return;const img=f.querySelector('img');const th=f.dataset.thumb||(img&&img.getAttribute('src'))||'';if(!th.startsWith('data:image/'))return;ps.push({lat,lon,thumb:th,place:f.dataset.place||'',pid:f.dataset.pid||''})});
