@@ -392,6 +392,81 @@ body.focus .tb{display:none}
 .hdl .hrot::after{background:var(--accent);border-color:#fff}
 .hdl .hrot::before{content:"";position:absolute;left:50%;top:28px;width:2px;height:14px;background:var(--accent)}
 
+
+/* ===== inicio ===== */
+body.booting #app,body.booting .tabs{visibility:hidden}
+body.onhome .top{display:none}
+.hero{position:relative;background:var(--cover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='none' stroke='white' stroke-opacity='.14' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 26l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z'/%3E%3Cpath d='M120 24c8 7 16-7 24 0s16-7 24 0'/%3E%3Ccircle cx='160' cy='128' r='10'/%3E%3Cpath d='M36 140c10-15 28-15 38 0'/%3E%3Cpath d='M104 92l10 10M114 92l-10 10'/%3E%3Cpath d='M60 84c3-6 9-6 12 0'/%3E%3Cpath d='M150 180l6-12 6 12'/%3E%3Cpath d='M10 186c6-6 12 6 18 0s12 6 18 0'/%3E%3Cpath d='M180 60c-6 0-6-10 0-10s6 10 0 10'/%3E%3C/svg%3E") 0 0/200px 200px;color:#fff;padding:calc(22px + var(--safe-t)) 22px 64px;border-radius:0 0 34px 34px;overflow:hidden;min-height:250px}
+.hero small{font:500 16px 'Fredoka',sans-serif;opacity:.85}
+.hero h2{font:600 clamp(34px,10vw,46px)/1.05 'Fredoka',sans-serif;margin:4px 0 6px;max-width:70%;text-wrap:balance}
+.hero p{margin:0;opacity:.85;font-weight:600}
+.hero p::first-letter{text-transform:uppercase}
+.herobtns{position:absolute;right:10px;top:calc(10px + var(--safe-t));display:flex;gap:2px;z-index:2}
+.herostk{position:absolute;right:-6px;bottom:22px;width:130px;transform:rotate(10deg);filter:drop-shadow(0 8px 10px rgba(0,0,0,.25))}
+.hbody{padding:0 14px;max-width:760px;margin:0 auto}
+.today{position:relative;margin-top:-44px;background:var(--ui);border-radius:24px;padding:18px;box-shadow:0 18px 36px -20px rgba(0,0,0,.45);border:1px solid var(--line)}
+.today h3{margin:0 0 4px;font-size:21px}
+.today p{margin:0 0 14px;color:var(--mute)}
+.bigfaces{display:flex;justify-content:space-between;gap:6px}
+.bigfaces button{flex:1;display:grid;justify-items:center;gap:4px;font:500 12px 'Fredoka',sans-serif;color:var(--mute);padding:4px 0;border-radius:14px}
+.bigfaces button:hover{background:var(--ui2)}
+.bigfaces svg{width:48px;height:48px;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.bigfaces button:active svg{transform:scale(1.2) rotate(-8deg)}
+.todayrow{display:flex;gap:14px;align-items:center}
+.todayrow .fc{width:56px;height:56px;flex:none}
+.todayrow .fc svg{width:100%;height:100%}
+.today .btn{margin-top:4px}
+.hsec{font-size:19px;margin:22px 4px 10px}
+.memory{display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;align-items:center;width:100%;text-align:left;margin-top:14px;padding:12px;border-radius:22px;background:color-mix(in srgb,var(--sun) 35%,var(--ui));border:1px solid var(--line)}
+.memory img,.memory .ph0{width:92px;height:92px;border-radius:6px;border:5px solid #fff;border-bottom-width:14px;object-fit:cover;transform:rotate(-4deg);box-shadow:0 6px 12px -6px rgba(0,0,0,.5);background:var(--cover)}
+.memory small{font:600 13px 'Fredoka',sans-serif;color:var(--accent);display:block}
+.memory b{font:600 18px 'Fredoka',sans-serif;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.memory span{color:var(--mute);font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.recent{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 18px;scrollbar-width:none}
+.recent::-webkit-scrollbar{display:none}
+.rc{flex:none;width:150px;scroll-snap-align:start;text-align:left;background:var(--ui);border:1px solid var(--line);border-radius:20px;overflow:hidden;padding:0;box-shadow:0 2px 0 var(--line)}
+.rc .cv{height:120px;background:var(--cover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='none' stroke='white' stroke-opacity='.14' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 26l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z'/%3E%3Cpath d='M120 24c8 7 16-7 24 0s16-7 24 0'/%3E%3Ccircle cx='160' cy='128' r='10'/%3E%3Cpath d='M36 140c10-15 28-15 38 0'/%3E%3Cpath d='M104 92l10 10M114 92l-10 10'/%3E%3Cpath d='M60 84c3-6 9-6 12 0'/%3E%3Cpath d='M150 180l6-12 6 12'/%3E%3Cpath d='M10 186c6-6 12 6 18 0s12 6 18 0'/%3E%3Cpath d='M180 60c-6 0-6-10 0-10s6 10 0 10'/%3E%3C/svg%3E") 0 0/140px 140px;display:grid;place-items:center}
+.rc .cv img{width:100%;height:100%;object-fit:cover}
+.rc .cv svg{width:54px;height:54px}
+.rc div.t2{padding:10px 12px 12px}
+.rc small{color:var(--mute);font-size:12px;font-weight:700;text-transform:capitalize}
+.rc b{display:block;font:600 15px/1.25 'Fredoka',sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc.new .cv{background:var(--ui2)}
+.namein{width:100%;min-height:48px;border:1px solid var(--line);border-radius:14px;background:var(--ui2);padding:0 14px;font:500 17px 'Fredoka',sans-serif}
+.set h4{margin:16px 0 8px;font-size:14px;color:var(--mute)}
+
+/* ===== bloqueo ===== */
+.lock{position:fixed;inset:0;z-index:200;background:var(--cover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='none' stroke='white' stroke-opacity='.14' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 26l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z'/%3E%3Cpath d='M120 24c8 7 16-7 24 0s16-7 24 0'/%3E%3Ccircle cx='160' cy='128' r='10'/%3E%3Cpath d='M36 140c10-15 28-15 38 0'/%3E%3Cpath d='M104 92l10 10M114 92l-10 10'/%3E%3Cpath d='M60 84c3-6 9-6 12 0'/%3E%3Cpath d='M150 180l6-12 6 12'/%3E%3Cpath d='M10 186c6-6 12 6 18 0s12 6 18 0'/%3E%3Cpath d='M180 60c-6 0-6-10 0-10s6 10 0 10'/%3E%3C/svg%3E") 0 0/200px 200px;color:#fff;display:grid;place-items:center;padding:calc(20px + var(--safe-t)) 20px calc(20px + var(--safe-b));overflow:auto}
+.lock[hidden]{display:none}
+.lockin{width:min(320px,100%);display:grid;justify-items:center;text-align:center}
+.lkicon{width:64px;height:64px;border-radius:22px;background:#ffffff22;display:grid;place-items:center;margin-bottom:12px}
+.lkicon svg.i{width:30px;height:30px}
+.lock h2{font-size:28px;margin:0}
+.lock p{margin:6px 0 18px;opacity:.85;min-height:1.5em}
+.dots{display:flex;gap:16px;margin-bottom:28px}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid #fff;transition:background .15s,transform .15s}
+.dots i.on{background:#fff;transform:scale(1.1)}
+.dots.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.keys{display:grid;grid-template-columns:repeat(3,76px);gap:16px 22px}
+.keys button{width:76px;height:76px;border-radius:50%;background:#ffffff1f;color:#fff;font:500 30px 'Fredoka',sans-serif;display:grid;place-items:center;transition:background .1s}
+.keys button:active{background:#ffffff55}
+.keys .kf{background:none}
+.keys .kf svg.i{width:28px;height:28px}
+.keys .kf[hidden]{display:grid!important;visibility:hidden}
+.lkfoot{display:flex;gap:18px;margin-top:22px}
+.lklink{color:#fff;opacity:.8;font-weight:700;min-height:44px;text-decoration:underline;text-underline-offset:3px}
+.lkreset{margin-top:18px;display:grid;gap:10px;justify-items:center}
+.lkreset p{font-size:14px}
+
+
+/* ===== portada con foto ===== */
+.hasphoto .hero{background:linear-gradient(180deg,rgba(8,12,28,.55) 0%,rgba(8,12,28,0) 32%,rgba(8,12,28,.1) 58%,rgba(8,12,28,.75) 100%),var(--heroimg) center 62%/cover;min-height:min(62vh,470px);display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:70px}
+.hasphoto .herostk{display:none}
+.hasphoto .hero h2{text-shadow:0 2px 16px rgba(0,0,0,.55);max-width:100%}
+.hasphoto .hero small,.hasphoto .hero p{text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.hasphoto .lock{background:linear-gradient(rgba(8,12,28,.5),rgba(8,12,28,.82)),var(--heroimg) center 62%/cover}
+
 @media(min-width:700px){.sheet{margin:18px 24px 30px;padding-left:40px;padding-right:40px}.sheet[data-paper=lined]{padding-left:76px}.sheet[data-paper=lined]::before{left:56px}.pad{padding:22px 24px}}
 @media(max-width:420px){.moodname{display:none}.stats b{font-size:24px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -403,7 +478,7 @@ body.focus .tb{display:none}
 }
 </style>
 </head>
-<body>
+<body class="booting">
 <div id="app">
 <header class="top">
   <div class="tt"><small id="topKick">Súper Diario</small><h1 id="topTitle">Súper Diario</h1></div>
@@ -414,6 +489,23 @@ body.focus .tb{display:none}
 </header>
 
 <main>
+<section class="view" id="vHome">
+  <div class="hero">
+    <div class="herobtns"><button class="ib" id="hLock" aria-label="Bloquear ahora" data-ic="lock" hidden></button><button class="ib" id="hSet" aria-label="Ajustes" data-ic="sliders"></button></div>
+    <small id="hGreet"></small>
+    <h2 id="hName">Súper Diario</h2>
+    <p id="hDate"></p>
+    <img class="herostk" id="hStk" alt="">
+  </div>
+  <div class="hbody">
+    <div class="today" id="hToday"></div>
+    <div class="stats" id="hStats"></div>
+    <div id="hMemory"></div>
+    <h3 class="hsec">Últimas hojas</h3>
+    <div class="recent" id="hRecent"></div>
+  </div>
+</section>
+
 <section class="view" id="vWrite">
   <div class="meta">
     <button class="chip" id="mDate"><span data-ic="cal"></span><span id="mDateTxt"></span></button>
@@ -491,7 +583,12 @@ body.focus .tb{display:none}
 
 <section class="view pad" id="vSet">
   <div class="set"><h3>Tema</h3><p>Claro, oscuro o según el teléfono.</p><div class="opts" id="themeOpts"></div></div>
-  <div class="set"><h3>Color de la tapa</h3><p>El color de tu diario.</p><div class="opts" id="coverOpts"></div></div>
+  <div class="set"><h3>Tapa</h3><p>El nombre y el color de tu diario.</p>
+    <input class="namein" id="nameIn" maxlength="40" placeholder="Súper Diario" aria-label="Nombre del diario">
+    <div class="row" style="margin-top:12px"><label class="btn ghost"><span data-ic="photo"></span>Cambiar foto de portada<input type="file" id="coverPhotoIn" accept="image/*" hidden></label><button class="btn ghost" id="bDefPhoto">Foto original</button><button class="btn ghost" id="bNoPhoto">Sin foto</button></div>
+    <div class="opts" id="coverOpts" style="margin-top:12px"></div></div>
+  <div class="set"><h3>Clave</h3><p id="lockTxt"></p><div class="row" id="lockBtns"></div>
+    <div id="lockMore"><h4>Bloquear de nuevo</h4><div class="opts" id="lockAfter"></div></div></div>
   <div class="set"><h3>Hoja predeterminada</h3><p>Papel, letra y tinta con que arranca cada entrada nueva.</p><button class="btn ghost" id="bDefLook"><span data-ic="type"></span>Elegir</button></div>
   <div class="set"><h3>Pantalla de inicio</h3><p id="installTxt">Instalá el diario como una app más.</p><button class="btn" id="bInstall" hidden><span data-ic="download"></span>Instalar</button></div>
   <div class="set"><h3>Copia de seguridad</h3><p>Todo se guarda en este teléfono. Bajá una copia de vez en cuando para no perder nada.</p>
@@ -503,7 +600,7 @@ body.focus .tb{display:none}
 </main>
 
 <nav class="tabs">
-  <button data-v="vWrite"><span class="bub" data-ic="pen"></span>Escribir</button>
+  <button data-v="vHome"><span class="bub" data-ic="home"></span>Inicio</button>
   <button data-v="vList"><span class="bub" data-ic="book"></span>Entradas</button>
   <button class="fab" id="bFab" aria-label="Nueva entrada"><span data-ic="plus"></span></button>
   <button data-v="vMap"><span class="bub" data-ic="map"></span>Mapa</button>
@@ -588,6 +685,23 @@ body.focus .tb{display:none}
   </div>
 </section>
 
+<div class="lock" id="lock" hidden>
+  <div class="lockin">
+    <div class="lkicon" data-ic="lock"></div>
+    <h2 id="lkName">Súper Diario</h2>
+    <p id="lkMsg">Ingresá tu clave</p>
+    <div class="dots" id="lkDots"><i></i><i></i><i></i><i></i></div>
+    <div class="keys" id="lkPad">
+      <button data-d="1">1</button><button data-d="2">2</button><button data-d="3">3</button>
+      <button data-d="4">4</button><button data-d="5">5</button><button data-d="6">6</button>
+      <button data-d="7">7</button><button data-d="8">8</button><button data-d="9">9</button>
+      <button data-k="bio" id="lkBio" aria-label="Face ID o huella" class="kf" data-ic="finger"></button><button data-d="0">0</button><button data-k="del" aria-label="Borrar" class="kf" data-ic="back"></button>
+    </div>
+    <div class="lkfoot"><button class="lklink" id="lkForgot">¿Olvidaste la clave?</button><button class="lklink" id="lkCancel" hidden>Cancelar</button></div>
+    <div class="lkreset" id="lkReset" hidden><p>La clave no se puede recuperar. La única salida es borrar todo el diario de este teléfono (si bajaste una copia, la podés restaurar después).</p><button class="btn warn" id="lkWipe">Borrar todo el diario</button><button class="lklink" id="lkBack">Volver</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div id="print"></div>
 
@@ -619,7 +733,7 @@ search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3',download:'M12 3v12M
 print:'M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z',
 x:'M18 6 6 18M6 6l12 12',eraser:'M20 20H9l-5-5a2 2 0 0 1 0-2.8L13.2 3a2 2 0 0 1 2.8 0l4 4a2 2 0 0 1 0 2.8L11 19M8 11l6 6',
 left:'M15 18l-6-6 6-6',right:'M9 18l6-6-6-6',rotate:'M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5',map:'M9 4 3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14',
-locate:'M3 11l18-8-8 18-2-8z',refresh:'M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5'};
+locate:'M3 11l18-8-8 18-2-8z',home:'M3 11l9-8 9 8M5 9.5V20h5v-6h4v6h5V9.5',lock:'M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1zM8 11V7a4 4 0 0 1 8 0v4M12 15v2',finger:'M7 4.5A9 9 0 0 1 21 12M3.5 9A9 9 0 0 0 3 12M12 7a5 5 0 0 1 5 5c0 3-.5 5.5-1.5 7.5M7 12a5 5 0 0 1 2-4M7 12c0 3 1 5.5 2.5 7.5M12 11v1c0 3.5-.7 6.5-2 8.5',back:'M21 5H9l-7 7 7 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1zM17 9l-6 6M11 9l6 6',refresh:'M21 12a9 9 0 0 1-15.5 6.3L3 16M3 21v-5h5M3 12a9 9 0 0 1 15.5-6.3L21 8M21 3v5h-5'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const fillIcons=root=>root.querySelectorAll('[data-ic]').forEach(el=>{el.insertAdjacentHTML('afterbegin',ic(el.dataset.ic));el.removeAttribute('data-ic')});
 fillIcons(document);
@@ -639,7 +753,7 @@ const sanitize=html=>{const d=new DOMParser().parseFromString('<body>'+(html||''
   d.querySelectorAll('script,iframe,object,embed,link,meta,style,form,input,button').forEach(n=>n.remove());
   d.body.querySelectorAll('*').forEach(n=>{[...n.attributes].forEach(a=>{const v=a.value.trim().toLowerCase();if(a.name.startsWith('on')||((a.name==='href'||a.name==='src')&&v.startsWith('javascript:')))n.removeAttribute(a.name)})});
   return d.body.innerHTML};
-const plain=html=>new DOMParser().parseFromString('<body>'+(html||'')+'</body>','text/html').body.textContent.replace(/\s+/g,' ').trim();
+const plain=html=>new DOMParser().parseFromString('<body>'+(html||'').replace(/<(\/p|\/div|\/h[1-6]|\/li|\/blockquote|br)/gi,' <$1')+'</body>','text/html').body.textContent.replace(/\s+/g,' ').trim();
 const firstImg=html=>{const m=/<img[^>]+src="(data:image\/[^"]+)"/.exec(html||'');return m?m[1]:''};
 
 /* ---------- catálogos ---------- */
@@ -691,7 +805,7 @@ const DB={db:null,
  put(s,v,k){return this.run(s,'readwrite',o=>k!==undefined?o.put(v,k):o.put(v))},del(s,k){return this.run(s,'readwrite',o=>o.delete(k))}};
 
 /* ---------- estado ---------- */
-let entries=[],stickers=[],cur=null,prefs={cover:'tinta',theme:'auto',font:'caveat',paper:'lined',pc:'auto',ink:'auto',scale:1};
+let entries=[],stickers=[],cur=null,prefs={name:'La vida de Kama',photo:'default',cover:'tinta',theme:'auto',font:'caveat',paper:'lined',pc:'auto',ink:'auto',scale:1};
 let lookTarget='entry';
 const ed=$('#ed'),sheet=$('#sheet'),titleIn=$('#title');
 const byId=id=>entries.find(e=>e.id===id);
@@ -994,18 +1108,18 @@ function toggleVoice(){if(!SR)return toast('Este navegador no permite dictar ac�
  try{rec.start();$('#bVoice').classList.add('rec');toast('Te escucho… tocá Dictar para terminar')}catch{rec=null}}
 
 /* ---------- vistas ---------- */
-function show(id){$$('.view').forEach(v=>v.classList.toggle('on',v.id===id));$$('.tabs button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===id));$('#bSet').classList.toggle('on',id==='vSet');
+function show(id){document.body.classList.toggle('onhome',id==='vHome');$$('.view').forEach(v=>v.classList.toggle('on',v.id===id));$$('.tabs button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===id));$('#bSet').classList.toggle('on',id==='vSet');
  const w=id==='vWrite';$('#bFocus').hidden=!w;$('#bMore').hidden=!w;$('#saveState').hidden=!w;
- if(!w){setTop('Súper Diario',{vList:'Entradas',vCal:'Calendario',vSet:'Ajustes',vMap:'Mapa'}[id]);deselect()}else if(cur){setTop(fmtKick(cur.date),cur.title||'Hoja nueva');requestAnimationFrame(fitTitle)}
- if(id==='vList')renderList();if(id==='vCal')renderCal();if(id==='vSet')renderSet();if(id==='vMap')showMap()}
-$$('.tabs button[data-v]').forEach(b=>b.onclick=async()=>{if(b.dataset.v!=='vWrite')await flush();if(b.dataset.v==='vWrite'&&!cur)await openToday();show(b.dataset.v)});
+ if(!w){setTop(diaryName(),{vList:'Entradas',vCal:'Calendario',vSet:'Ajustes',vMap:'Mapa',vHome:''}[id]);deselect()}else if(cur){setTop(fmtKick(cur.date),cur.title||'Hoja nueva');requestAnimationFrame(fitTitle)}
+ if(id==='vHome')renderHome();if(id==='vList')renderList();if(id==='vCal')renderCal();if(id==='vSet')renderSet();if(id==='vMap')showMap()}
+$$('.tabs button[data-v]').forEach(b=>b.onclick=async()=>{await flush();show(b.dataset.v);window.scrollTo(0,0)});
 $('#bFab').onclick=async()=>{await openEntry(newEntry());titleIn.focus()};
 $('#bSet').onclick=async()=>{await flush();show('vSet')};
 $('#bFocus').onclick=()=>{document.body.classList.add('focus');ed.focus()};
 $('#bExitFocus').onclick=()=>document.body.classList.remove('focus');
 $('#bMore').onclick=e=>pop(e.currentTarget,`<div class="menu"><button data-x="look">${ic('type')}Papel y letra</button><button data-x="print">${ic('print')}Exportar esta hoja a PDF</button><button data-x="del">${ic('trash')}Eliminar esta entrada</button></div>`,b=>{
  const x=b.dataset.x;if(x==='look'){lookTarget='entry';openLook()}if(x==='print')printEntries([cur]);
- if(x==='del')confirmBox('¿Eliminar esta entrada?',`“${cur.title||fmtLong(cur.date)}” se borra para siempre.`,'Eliminar',async()=>{const id=cur.id;entries=entries.filter(e=>e.id!==id);await DB.del('entries',id);cur=null;toast('Entrada eliminada');await openToday()})});
+ if(x==='del')confirmBox('¿Eliminar esta entrada?',`“${cur.title||fmtLong(cur.date)}” se borra para siempre.`,'Eliminar',async()=>{const id=cur.id;entries=entries.filter(e=>e.id!==id);await DB.del('entries',id);cur=null;toast('Entrada eliminada');show('vHome')})});
 
 async function openToday(){const t=sorted().find(e=>e.date===today());await openEntry(t||newEntry())}
 
@@ -1055,7 +1169,7 @@ $('#calBox').onclick=async e=>{const n=e.target.closest('[data-nav]'),y=e.target
   await openEntry(arr[0]||newEntry(k))}};
 
 /* ajustes */
-function renderSet(){$('#coverOpts').innerHTML=COVERS.map(c=>`<button class="sw${prefs.cover===c.k?' on':''}" style="--c:${c.c}" data-k="${c.k}" aria-label="${c.n}" title="${c.n}"></button>`).join('');$('#themeOpts').innerHTML=[['auto','Automático'],['light','Claro'],['dark','Oscuro']].map(([k,n])=>`<button class="opt${prefs.theme===k?' on':''}" data-k="${k}">${n}</button>`).join('');
+function renderSet(){$('#nameIn').value=prefs.name;renderLockSet();$('#coverOpts').innerHTML=COVERS.map(c=>`<button class="sw${prefs.cover===c.k?' on':''}" style="--c:${c.c}" data-k="${c.k}" aria-label="${c.n}" title="${c.n}"></button>`).join('');$('#themeOpts').innerHTML=[['auto','Automático'],['light','Claro'],['dark','Oscuro']].map(([k,n])=>`<button class="opt${prefs.theme===k?' on':''}" data-k="${k}">${n}</button>`).join('');
  if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(s=>{$('#usage').textContent=`El diario usa ${(s.usage/1048576).toFixed(1)} MB de este teléfono. ${entries.filter(e=>!isBlank(e)).length} entradas y ${stickers.length} stickers propios.`});
  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
  $('#installTxt').textContent=standalone?'Ya está instalada en tu pantalla de inicio.':installEv?'Agregalo a tu pantalla de inicio como una app más.':/iphone|ipad/i.test(navigator.userAgent)?'En Safari: tocá Compartir y después “Agregar a inicio”.':'En Chrome: abrí el menú ⋮ y elegí “Agregar a la pantalla principal” o “Instalar app”.';
@@ -1086,6 +1200,91 @@ function printEntries(list){flush();const P=$('#print');
  P.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
  setTimeout(()=>{try{window.print()}catch{toast('No se pudo abrir la impresión')}},150)}
 $('#bPrintAll').onclick=()=>printEntries(entries);
+
+/* ---------- inicio ---------- */
+const diaryName=()=>prefs.name.trim()||'Súper Diario';
+function greet(){const h=new Date().getHours();return h<6?'Buenas noches':h<13?'Buen día':h<20?'Buenas tardes':'Buenas noches'}
+function renderHome(){const h=new Date().getHours(),list=sorted().filter(e=>!isBlank(e)),t=today();
+ $('#hGreet').textContent=greet();$('#hName').textContent=diaryName();$('#hDate').textContent=fmtKick(t);$('#hStk').src=BASESTK[h>=7&&h<20?2:4];$('#hLock').hidden=!LOCK.on;
+ const te=list.find(e=>e.date===t);
+ $('#hToday').innerHTML=te?`<div class="todayrow">${te.mood?`<span class="fc">${face(MOODS.find(m=>m.k===te.mood))}</span>`:''}<div style="min-width:0"><h3>${esc(te.title||'Tu hoja de hoy')}</h3><p>${esc(plain(te.html).slice(0,90)||'Empezaste la hoja de hoy.')}</p></div></div><button class="btn" data-open="${te.id}">${ic('pen')}Seguir escribiendo</button>`
+  :`<h3>¿Cómo estuvo tu día?</h3><p>Elegí una carita y empezá la hoja de hoy.</p><div class="bigfaces">${MOODS.map(m=>`<button data-mood="${m.k}" aria-label="${m.n}">${face(m)}${m.n}</button>`).join('')}</div>`;
+ const m=dayMap(),photos=list.reduce((a,e)=>a+((e.html.match(/<figure class="ph (?!draw)/g)||[]).length),0);
+ $('#hStats').innerHTML=`<div class="stat"><b>${streak(m)}</b><span>días seguidos</span></div><div class="stat"><b>${list.length}</b><span>hojas</span></div><div class="stat"><b>${photos}</b><span>fotos</span></div>`;
+ const md=t.slice(5),yr=+t.slice(0,4);let mem=list.filter(e=>e.date.slice(5)===md&&+e.date.slice(0,4)<yr),lbl='';
+ if(mem.length){const n=yr-+mem[0].date.slice(0,4);lbl=`Un día como hoy · hace ${n} año${n>1?'s':''}`}
+ else{for(const [d,l] of [[7,'Hace una semana'],[30,'Hace un mes']]){const x=new Date();x.setDate(x.getDate()-d);mem=list.filter(e=>e.date===isoDay(x));if(mem.length){lbl=l;break}}}
+ if(mem.length){const e=mem[0],img=firstImg(e.html);$('#hMemory').innerHTML=`<button class="memory" data-open="${e.id}">${img?`<img src="${img}" alt="">`:'<span class="ph0"></span>'}<span style="min-width:0;display:block"><small>${lbl}</small><b>${esc(e.title||fmtLong(e.date))}</b><span>${esc(plain(e.html).slice(0,120))}</span></span></button>`}else $('#hMemory').innerHTML='';
+ $('#hRecent').innerHTML=list.slice(0,8).map(e=>{const img=firstImg(e.html),mo=MOODS.find(x=>x.k===e.mood);return `<button class="rc" data-open="${e.id}"><div class="cv">${img?`<img src="${img}" alt="">`:mo?face(mo):''}</div><div class="t2"><small>${fmtShort(e.date)}</small><b>${esc(e.title||plain(e.html).slice(0,40)||'Sin título')}</b></div></button>`}).join('')+`<button class="rc new" id="hNew"><div class="cv">${ic('plus')}</div><div class="t2"><small>Nueva</small><b>Empezar una hoja</b></div></button>`}
+$('#vHome').addEventListener('click',async e=>{const o=e.target.closest('[data-open]'),mo=e.target.closest('[data-mood]');
+ if(o)return openEntry(byId(o.dataset.open));
+ if(mo){const en=newEntry();en.mood=+mo.dataset.mood;await openEntry(en);dirty=true;flush();titleIn.focus();return}
+ if(e.target.closest('#hNew')){await openEntry(newEntry());titleIn.focus()}});
+$('#hSet').onclick=()=>show('vSet');
+$('#hLock').onclick=()=>showLock('unlock');
+
+/* foto de portada */
+async function applyPhoto(){let u='';if(prefs.photo==='custom'){try{u=await DB.get('kv','coverPhoto')||''}catch{}}else if(prefs.photo!=='none')u='portada.jpg';
+ const r=document.documentElement;if(u){r.style.setProperty('--heroimg',`url("${u}")`);r.classList.add('hasphoto')}else{r.style.removeProperty('--heroimg');r.classList.remove('hasphoto')}
+ $('#bDefPhoto').hidden=prefs.photo==='default';$('#bNoPhoto').hidden=prefs.photo==='none'}
+$('#coverPhotoIn').addEventListener('click',()=>pickerUntil=Date.now()+180000);
+$('#coverPhotoIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const {url}=await shrink(f,1400,.8);await DB.put('kv',url,'coverPhoto');prefs.photo='custom';savePrefs();await applyPhoto();toast('Portada cambiada')}catch{toast('No se pudo usar esa foto')}};
+$('#bDefPhoto').onclick=()=>{prefs.photo='default';savePrefs();applyPhoto()};
+$('#bNoPhoto').onclick=()=>{prefs.photo='none';savePrefs();applyPhoto()};
+
+/* ---------- clave ---------- */
+const LOCK={on:false,salt:'',hash:'',bio:null,after:60};
+let lkMode='unlock',lkBuf='',lkFirst='',lkCb=null,fails=0,lockedUntil=0,hiddenAt=0,pickerUntil=0;
+async function hashPin(pin,salt){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const saveLock=()=>DB.put('kv',{...LOCK},'lock').catch(()=>{});
+const LKMSG={unlock:'Ingresá tu clave',verify:'Ingresá tu clave actual',new1:'Elegí una clave de 4 números',new2:'Repetila para confirmar'};
+function showLock(mode,cb){lkMode=mode;lkCb=cb||null;lkBuf='';$('#lkName').textContent=diaryName();$('#lkMsg').textContent=LKMSG[mode];renderDots();
+ $('#lkCancel').hidden=mode==='unlock';$('#lkForgot').hidden=mode!=='unlock';$('#lkBio').hidden=!(mode==='unlock'&&LOCK.bio);$('#lkReset').hidden=true;$('#lkPad').hidden=false;
+ $('#lock').hidden=false;closePop();if(mode==='unlock'){document.body.classList.add('locked');flush()}}
+function hideLock(){$('#lock').hidden=true;document.body.classList.remove('locked')}
+function renderDots(){[...$('#lkDots').children].forEach((d,i)=>d.classList.toggle('on',i<lkBuf.length))}
+function shake(msg){$('#lkMsg').textContent=msg;const d=$('#lkDots');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');if(navigator.vibrate)navigator.vibrate(120);lkBuf='';setTimeout(renderDots,250)}
+async function lkDigit(n){if(Date.now()<lockedUntil){$('#lkMsg').textContent=`Esperá ${Math.ceil((lockedUntil-Date.now())/1000)} segundos`;return}
+ if(lkBuf.length>=4)return;lkBuf+=n;renderDots();if(lkBuf.length<4)return;const pin=lkBuf;
+ await new Promise(r=>setTimeout(r,120));
+ if(lkMode==='unlock'||lkMode==='verify'){if(await hashPin(pin,LOCK.salt)===LOCK.hash){fails=0;lkBuf='';hideLock();const cb=lkCb;lkCb=null;cb&&cb()}
+   else{fails++;if(fails>=5){lockedUntil=Date.now()+30000*Math.pow(2,fails-5);shake('Demasiados intentos. Esperá un rato')}else shake('Clave incorrecta')}}
+ else if(lkMode==='new1'){lkFirst=pin;lkMode='new2';lkBuf='';renderDots();$('#lkMsg').textContent=LKMSG.new2}
+ else if(lkMode==='new2'){if(pin===lkFirst){const salt=uid()+uid();Object.assign(LOCK,{on:true,salt,hash:await hashPin(pin,salt)});await saveLock();hideLock();toast('Clave guardada');renderSet();const cb=lkCb;lkCb=null;cb&&cb()}
+   else{lkMode='new1';shake('No coinciden. Elegí la clave de nuevo')}}}
+$('#lkPad').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.d)lkDigit(b.dataset.d);
+ if(b.dataset.k==='del'){lkBuf=lkBuf.slice(0,-1);renderDots()}if(b.dataset.k==='bio')bioUnlock()});
+document.addEventListener('keydown',e=>{if($('#lock').hidden)return;if(/^\d$/.test(e.key))lkDigit(e.key);if(e.key==='Backspace'){lkBuf=lkBuf.slice(0,-1);renderDots()}});
+$('#lkCancel').onclick=()=>{hideLock();lkCb=null};
+$('#lkForgot').onclick=()=>{$('#lkReset').hidden=false;$('#lkPad').hidden=true;$('#lkForgot').hidden=true;$('#lkWipe').textContent='Borrar todo el diario';$('#lkWipe').dataset.sure=''};
+$('#lkBack').onclick=()=>showLock('unlock');
+$('#lkWipe').onclick=e=>{const b=e.currentTarget;if(!b.dataset.sure){b.dataset.sure='1';b.textContent='Tocá de nuevo para borrar todo';return}
+ try{DB.db&&DB.db.close()}catch{}const r=indexedDB.deleteDatabase('superdiario');r.onsuccess=r.onerror=r.onblocked=()=>location.reload()};
+const b64=buf=>btoa(String.fromCharCode(...new Uint8Array(buf))),unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
+async function bioAvailable(){try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch{return false}}
+async function bioSetup(){try{const c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'Súper Diario'},user:{id:rnd(16),name:'diario',displayName:diaryName()},
+  pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000}});
+  LOCK.bio=b64(c.rawId);await saveLock();toast('Listo: podés abrir con Face ID o huella');renderSet()}catch{toast('No se pudo activar Face ID / huella')}}
+async function bioUnlock(){try{await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:'public-key',id:unb64(LOCK.bio)}],userVerification:'required',timeout:60000}});fails=0;hideLock();const cb=lkCb;lkCb=null;cb&&cb()}catch{$('#lkMsg').textContent='No se pudo. Usá tu clave'}}
+async function renderLockSet(){const on=LOCK.on;
+ $('#lockTxt').textContent=on?'El diario pide una clave de 4 números al abrirlo. Si la olvidás no se puede recuperar, así que guardá copias de seguridad.':'Ahora el diario se abre sin clave. Ponele una para que nadie lo lea si agarra tu teléfono.';
+ let h=on?`<button class="btn ghost" data-l="change">Cambiar clave</button><button class="btn ghost" data-l="off">Quitar clave</button>`:`<button class="btn" data-l="on">${ic('lock')}Poner clave</button>`;
+ if(on&&await bioAvailable())h+=LOCK.bio?`<button class="btn ghost" data-l="biooff">Quitar Face ID / huella</button>`:`<button class="btn ghost" data-l="bioon">${ic('finger')}Usar Face ID / huella</button>`;
+ $('#lockBtns').innerHTML=h;$('#lockMore').hidden=!on;
+ $('#lockAfter').innerHTML=[[0,'Apenas salgo'],[60,'Después de 1 minuto'],[300,'Después de 5 minutos']].map(([v,n])=>`<button class="opt${LOCK.after===v?' on':''}" data-v="${v}">${n}</button>`).join('')}
+$('#lockBtns').onclick=e=>{const b=e.target.closest('[data-l]');if(!b)return;const l=b.dataset.l;
+ if(l==='on')showLock('new1');
+ if(l==='change')showLock('verify',()=>showLock('new1'));
+ if(l==='off')showLock('verify',async()=>{Object.assign(LOCK,{on:false,salt:'',hash:'',bio:null});await saveLock();toast('Clave quitada');renderSet()});
+ if(l==='bioon')showLock('verify',bioSetup);
+ if(l==='biooff'){LOCK.bio=null;saveLock();renderSet()}};
+$('#lockAfter').onclick=e=>{const b=e.target.closest('.opt');if(!b)return;LOCK.after=+b.dataset.v;saveLock();renderLockSet()};
+$('#nameIn').addEventListener('input',e=>{prefs.name=e.target.value;savePrefs()});
+['#photoIn','#importIn'].forEach(s=>$(s).addEventListener('click',()=>pickerUntil=Date.now()+180000));
+$$('.t[data-a=photo]').forEach(b=>b.addEventListener('click',()=>pickerUntil=Date.now()+180000));
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();return}
+ if(LOCK.on&&$('#lock').hidden&&Date.now()>pickerUntil&&Date.now()-hiddenAt>=LOCK.after*1000)showLock('unlock');pickerUntil=0});
 
 /* ---------- mapa ---------- */
 let lmap=null,mlayer=null,mItems=[],firstFit=true,pkMap=null,pkCb=null,meDot=null;
@@ -1141,8 +1340,12 @@ async function boot(){try{await DB.open();if(navigator.storage&&navigator.storag
  if(!entries.length){const w=newEntry();w.title='¡Bienvenido a tu diario!';w.mood=5;w.tags=['primera'];
   w.html='<p>Esta es tu primera hoja. Podés borrarla cuando quieras desde el menú de arriba.</p><h3>Algunas cosas que podés hacer</h3><ul class="check"><li class="done">Abrir el diario</li><li>Cambiar el papel y la letra con <b>Papel y letra</b></li><li>Pegar una <b>foto</b> y tocarla para darle marco de polaroid o cinta</li><li>Hacer un <b>dibujo</b> o crear tus propios <b>stickers</b></li><li>Agregar la <b>ubicación</b>, el <span style="background-color:#fff176">ánimo</span> y etiquetas</li><li>Ver tus fotos en el <b>Mapa</b>, donde las sacaste</li><li>Ver tu año pintado en el <b>Calendario</b></li></ul><p><br></p><p>Todo se guarda solo, en tu teléfono. Desde <b>Ajustes</b> podés bajar una copia de seguridad.</p>';
   await DB.put('entries',w).catch(()=>{})}
+ try{const l=await DB.get('kv','lock');if(l)Object.assign(LOCK,l)}catch{}
+ await applyPhoto();
+ if(LOCK.on)showLock('unlock');
  const h=location.hash.slice(1),map={entradas:'vList',calendario:'vCal',ajustes:'vSet',mapa:'vMap'};
- await openToday();if(map[h])show(map[h])}
+ if(h==='escribir')await openToday();else show(map[h]||'vHome');
+ document.body.classList.remove('booting')}
 boot();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
