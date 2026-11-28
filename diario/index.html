@@ -375,6 +375,23 @@ main{padding-bottom:calc(120px + var(--safe-b))}
 body.focus .tb{display:none}
 @media(prefers-reduced-motion:reduce){.tabs .fab:active{transform:none}}
 
+
+/* ===== fotos libres ===== */
+.edc{position:relative}
+.ph.free,.stk.free{position:absolute;left:var(--x,0);top:var(--y,0);margin:0;z-index:var(--z,3);float:none}
+.ph.free{width:var(--w,45%)}
+.stk.free{height:var(--h,72px)}
+.stk{user-select:none;-webkit-user-drag:none}
+.ph.sel,.stk.sel{touch-action:none;cursor:grab;outline:none}
+.ph.sel:active,.stk.sel:active{cursor:grabbing}
+.hdl{position:absolute;z-index:15;pointer-events:none;border:2px dashed var(--accent);border-radius:6px}
+.hdl span{position:absolute;width:30px;height:30px;border-radius:50%;pointer-events:auto;touch-action:none;display:grid;place-items:center}
+.hdl span::after{content:"";width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.hdl .hsz{right:-16px;bottom:-16px;cursor:nwse-resize}
+.hdl .hrot{left:50%;top:-44px;margin-left:-15px;cursor:grab}
+.hdl .hrot::after{background:var(--accent);border-color:#fff}
+.hdl .hrot::before{content:"";position:absolute;left:50%;top:28px;width:2px;height:14px;background:var(--accent)}
+
 @media(min-width:700px){.sheet{margin:18px 24px 30px;padding-left:40px;padding-right:40px}.sheet[data-paper=lined]{padding-left:76px}.sheet[data-paper=lined]::before{left:56px}.pad{padding:22px 24px}}
 @media(max-width:420px){.moodname{display:none}.stats b{font-size:24px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -447,6 +464,7 @@ body.focus .tb{display:none}
     <span class="ribbon"></span>
     <textarea id="title" rows="1" placeholder="Título del día" autocomplete="off"></textarea>
     <div id="ed" class="edc" contenteditable="true" spellcheck="true" data-ph="Querido diario…"></div>
+    <div class="hdl" id="hdl" hidden><span class="hrot" data-h="rot" aria-label="Girar"></span><span class="hsz" data-h="size" aria-label="Cambiar tamaño"></span></div>
   </article>
 </section>
 
@@ -695,7 +713,7 @@ async function leaveCurrent(){await flush();if(cur&&isBlank(cur)&&entries.length
 
 /* ---------- abrir entrada ---------- */
 async function openEntry(e){if(cur&&cur!==e)await leaveCurrent();cur=e;
- titleIn.value=e.title;ed.innerHTML=sanitize(e.html);fixFigs();applyLook();requestAnimationFrame(fitTitle);renderMeta();deselect();
+ titleIn.value=e.title;ed.innerHTML=sanitize(e.html);fixFigs();applyLook();requestAnimationFrame(growEd);requestAnimationFrame(fitTitle);renderMeta();deselect();
  $('#saveState').textContent='';show('vWrite');window.scrollTo(0,0)}
 function applyLook(){const e=cur;if(!e)return;const f=FONTS.find(x=>x.k===e.font)||FONTS[0];
  const fs=+(f.s*(e.scale||1)).toFixed(1);const lh=Math.round(fs*1.62);
@@ -832,17 +850,17 @@ function loadJS(src){return loaded[src]||(loaded[src]=new Promise((res,rej)=>{co
 function loadCSS(href){return loaded[href]||(loaded[href]=new Promise(res=>{const l=document.createElement('link');l.rel='stylesheet';l.href=href;l.onload=res;l.onerror=()=>{delete loaded[href];res()};document.head.appendChild(l)}))}
 async function readGPS(f){try{await loadJS(EXIFR);const g=await window.exifr.gps(f);if(g&&isFinite(g.latitude)&&isFinite(g.longitude)&&(g.latitude||g.longitude))return{lat:+g.latitude.toFixed(5),lon:+g.longitude.toFixed(5)}}catch{}return null}
 $('#photoIn').onchange=async e=>{const files=[...e.target.files];e.target.value='';if(!files.length)return;toast(files.length>1?'Pegando fotos…':'Pegando foto…');let noLoc=0;const t=cur;
- for(const f of files){try{const [{url,thumb},gps]=await Promise.all([shrink(f,1400,.82),readGPS(f)]);const r=(Math.random()*4-2).toFixed(1),pid=uid();
+ for(const f of files){try{const [{url,thumb,portrait},gps]=await Promise.all([shrink(f,1400,.82),readGPS(f)]);const r=(Math.random()*4-2).toFixed(1),pid=uid();
    let ll=gps;if(!ll&&t.loc)ll={lat:t.loc.lat,lon:t.loc.lon,name:t.loc.name};if(!ll)noLoc++;
    const at=ll?` data-lat="${ll.lat}" data-lon="${ll.lon}" data-place="${esc(ll.name||'')}"`:'';
-   insertHTML(`<figure class="ph polaroid m" data-pid="${pid}"${at} data-thumb="${thumb}" contenteditable="false" style="--r:${r}deg"><img src="${url}" alt=""><figcaption contenteditable="true" data-ph="Escribí algo…"></figcaption></figure><p><br></p>`);
+   insertHTML(`<figure class="ph polaroid m" data-pid="${pid}"${at} data-thumb="${thumb}" contenteditable="false" style="--r:${r}deg;--w:${portrait?'45%':'70%'}"><img src="${url}" alt=""><figcaption contenteditable="true" data-ph="Escribí algo…"></figcaption></figure><p><br></p>`);
    if(gps){if(!t.loc)setEntryLoc(t,gps);reverseGeocode(gps.lat,gps.lon).then(n=>{const fig=ed.querySelector(`[data-pid="${pid}"]`);if(n&&fig){fig.dataset.place=n;changed()}})}
   }catch{toast('No se pudo leer una imagen')}}
  if(noLoc)setTimeout(()=>toast(noLoc>1?'Esas fotos no traen ubicación: tocá cada una → Lugar':'Esa foto no trae ubicación: tocala → Lugar'),1200)};
 function squareThumb(src,w,h){const sz=Math.min(w,h),c=document.createElement('canvas');c.width=c.height=220;c.getContext('2d').drawImage(src,(w-sz)/2,(h-sz)/2,sz,sz,0,0,220,220);return c.toDataURL('image/jpeg',.72)}
 const thumbFromImg=img=>{try{return squareThumb(img,img.naturalWidth,img.naturalHeight)}catch{return ''}};
 function shrink(file,max,q){return new Promise((res,rej)=>{const img=new Image();const u=URL.createObjectURL(file);img.onload=()=>{let{width:w,height:h}=img;const k=Math.min(1,max/Math.max(w,h));
- const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const thumb=squareThumb(img,w,h);URL.revokeObjectURL(u);res({url:c.toDataURL('image/jpeg',q),thumb})};img.onerror=()=>{URL.revokeObjectURL(u);rej()};img.src=u})}
+ const c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const thumb=squareThumb(img,w,h);URL.revokeObjectURL(u);res({url:c.toDataURL('image/jpeg',q),thumb,portrait:h>w*1.1})};img.onerror=()=>{URL.revokeObjectURL(u);rej()};img.src=u})}
 async function setPhotoLoc(fig,ll){const lat=+(+ll.lat).toFixed(5),lon=+(+ll.lon).toFixed(5);if(!fig.dataset.pid)fig.dataset.pid=uid();
  if(!fig.dataset.thumb){const img=fig.querySelector('img');if(img)fig.dataset.thumb=thumbFromImg(img)}
  fig.dataset.lat=lat;fig.dataset.lon=lon;fig.dataset.place=ll.name||'';changed();if(selEl===fig)renderBar();toast('Foto ubicada en el mapa');
@@ -851,13 +869,44 @@ async function setPhotoLoc(fig,ll){const lat=+(+ll.lat).toFixed(5),lon=+(+ll.lon
 
 /* barra para imágenes y stickers */
 let selEl=null;const bar=$('#imgBar');
-function select(el){deselect();selEl=el;el.classList.add('sel');renderBar();bar.classList.add('on')}
-function deselect(){if(selEl)selEl.classList.remove('sel');selEl=null;bar.classList.remove('on')}
+let hintShown=false;
+function select(el){if(selEl===el){renderHdl();return}deselect();selEl=el;el.classList.add('sel');renderBar();bar.classList.add('on');renderHdl();
+ if(!hintShown){hintShown=true;toast('Arrastrala para moverla · la manija de abajo cambia el tamaño y la de arriba la gira')}}
+function deselect(){if(selEl)selEl.classList.remove('sel');selEl=null;bar.classList.remove('on');$('#hdl').hidden=true}
+const hdl=$('#hdl');
+function renderHdl(){const el=selEl;if(!el||!el.isConnected){hdl.hidden=true;return}const sr=sheet.getBoundingClientRect(),r=el.getBoundingClientRect();
+ hdl.hidden=false;Object.assign(hdl.style,{left:(r.left-sr.left-4)+'px',top:(r.top-sr.top-4)+'px',width:(r.width+8)+'px',height:(r.height+8)+'px'})}
+window.addEventListener('resize',()=>{renderHdl();growEd()});
+const topZ=()=>Math.min(13,Math.max(3,...[...ed.querySelectorAll('.free')].map(f=>+f.style.getPropertyValue('--z')||3)));
+function makeFree(el){if(el.classList.contains('free'))return;const er=ed.getBoundingClientRect(),r=el.getBoundingClientRect();
+ if(el.classList.contains('ph')){const cur=getComputedStyle(el).width;el.style.setProperty('--w',(parseFloat(cur)/er.width*100).toFixed(1)+'%')}
+ else el.style.setProperty('--h',el.offsetHeight+'px');
+ el.classList.remove('fl','fr');el.style.setProperty('--x',((r.left-er.left)/er.width*100).toFixed(2)+'%');el.style.setProperty('--y',Math.round(r.top-er.top)+'px');el.style.setProperty('--z',topZ()+1);el.classList.add('free')}
+function growEd(){let m=0;ed.querySelectorAll('.free').forEach(f=>{m=Math.max(m,f.offsetTop+f.offsetHeight)});ed.style.minHeight=m?`max(50vh,${m+40}px)`:'';renderHdl()}
+/* arrastrar, cambiar tamaño y girar */
+let drag=null;
+function startDrag(e,mode){const el=selEl,er=ed.getBoundingClientRect();e.preventDefault();e.stopPropagation();
+ drag={mode,el,id:e.pointerId,x0:e.clientX,y0:e.clientY,started:mode!=='move',er};
+ if(mode==='size'){drag.w0=el.getBoundingClientRect().width;drag.h0=el.offsetHeight}
+ if(mode==='rot'){const r=el.getBoundingClientRect();drag.cx=r.left+r.width/2;drag.cy=r.top+r.height/2}
+ try{e.target.setPointerCapture(e.pointerId)}catch{}}
+ed.addEventListener('pointerdown',e=>{const el=e.target.closest('.ph,.stk');if(!el||el!==selEl||e.target.closest('figcaption'))return;startDrag(e,'move')});
+hdl.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-h]');if(h&&selEl)startDrag(e,h.dataset.h)});
+document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const d=drag,el=d.el,dx=e.clientX-d.x0,dy=e.clientY-d.y0;
+ if(d.mode==='move'){if(!d.started){if(Math.hypot(dx,dy)<6)return;d.started=true;makeFree(el);d.sx=parseFloat(el.style.getPropertyValue('--x'));d.sy=parseFloat(el.style.getPropertyValue('--y'))}
+  const x=Math.min(95,Math.max(-20,d.sx+dx/d.er.width*100)),y=Math.max(-40,d.sy+dy);el.style.setProperty('--x',x.toFixed(2)+'%');el.style.setProperty('--y',Math.round(y)+'px')}
+ if(d.mode==='size'){if(el.classList.contains('stk')){el.style.setProperty('--h',Math.round(Math.min(420,Math.max(24,d.h0+(dx+dy)/2)))+'px')}
+  else{el.classList.remove('s','m','l');el.style.setProperty('--w',Math.min(100,Math.max(22,(d.w0+dx)/d.er.width*100)).toFixed(1)+'%')}}
+ if(d.mode==='rot'){let a=Math.atan2(e.clientY-d.cy,e.clientX-d.cx)*180/Math.PI+90;if(a>180)a-=360;if(Math.abs(a)<4)a=0;el.style.setProperty('--r',Math.round(a)+'deg')}
+ renderHdl()});
+const endDrag=e=>{if(!drag||e.pointerId!==drag.id)return;const moved=drag.started;drag=null;if(moved){growEd();renderBar();changed()}};
+document.addEventListener('pointerup',endDrag);document.addEventListener('pointercancel',endDrag);
 function renderBar(){const el=selEl;if(!el)return;const isStk=el.classList.contains('stk');let h='';
  if(!isStk){h+=[['polaroid','Polaroid'],['tape','Cinta'],['plain','Simple'],['round','Círculo']].map(([k,n])=>`<button class="t${el.classList.contains(k)?' on':''}" data-st="${k}"><small>${n}</small></button>`).join('')+'<span class="sep"></span>';
-  h+=[['s','S'],['m','M'],['l','L']].map(([k,n])=>`<button class="t${el.classList.contains(k)?' on':''}" data-sz="${k}"><small>${n}</small></button>`).join('')+'<span class="sep"></span>';
-  h+=`<button class="t${el.classList.contains('fl')?' on':''}" data-fl="fl" aria-label="Texto a la derecha">${ic('alignL')}</button><button class="t${!el.classList.contains('fl')&&!el.classList.contains('fr')?' on':''}" data-fl="" aria-label="Centrada">${ic('alignC')}</button><button class="t${el.classList.contains('fr')?' on':''}" data-fl="fr" aria-label="Texto a la izquierda">${ic('alignR')}</button><span class="sep"></span>`}
+  h+=[['s','S'],['m','M'],['l','L']].map(([k,n])=>`<button class="t" data-sz="${k}"><small>${n}</small></button>`).join('')+'<span class="sep"></span>';
+  if(!el.classList.contains('free'))h+=`<button class="t${el.classList.contains('fl')?' on':''}" data-fl="fl" aria-label="Texto a la derecha">${ic('alignL')}</button><button class="t${!el.classList.contains('fl')&&!el.classList.contains('fr')?' on':''}" data-fl="" aria-label="Centrada">${ic('alignC')}</button><button class="t${el.classList.contains('fr')?' on':''}" data-fl="fr" aria-label="Texto a la izquierda">${ic('alignR')}</button><span class="sep"></span>`}
  else h+=[['48','S'],['72','M'],['120','L']].map(([k,n])=>`<button class="t" data-h="${k}"><small>${n}</small></button>`).join('')+'<span class="sep"></span>';
+ h+=el.classList.contains('free')?`<button class="t" data-unfree="1"><small>Al texto</small></button><button class="t" data-front="1"><small>Al frente</small></button><span class="sep"></span>`:`<button class="t" data-mkfree="1"><small>Mover libre</small></button><span class="sep"></span>`;
  if(!isStk&&!el.classList.contains('draw'))h+=`<button class="t${el.dataset.lat?' on':''}" data-locb="1">${ic('pin')}<small>Lugar</small></button><span class="sep"></span>`;
  h+=`<button class="t" data-rot="1" aria-label="Girar">${ic('rotate')}</button><button class="t" data-del="1" aria-label="Borrar">${ic('trash')}</button><button class="t" data-x="1" aria-label="Listo">${ic('x')}</button>`;bar.innerHTML=h}
 bar.addEventListener('pointerdown',e=>e.preventDefault());
@@ -870,13 +919,16 @@ bar.onclick=e=>{const b=e.target.closest('.t');if(!b||!selEl)return;const el=sel
    if(k==='entry')setPhotoLoc(fig,{lat:cur.loc.lat,lon:cur.loc.lon,name:cur.loc.name});
    if(k==='del'){delete fig.dataset.lat;delete fig.dataset.lon;delete fig.dataset.place;changed();renderBar()}});return}
  if(d.st){el.classList.remove('polaroid','tape','plain','round','draw');el.classList.add(d.st)}
- if(d.sz){el.classList.remove('s','m','l');el.classList.add(d.sz)}
+ if(d.sz){el.classList.remove('s','m','l');el.style.setProperty('--w',{s:'32%',m:'55%',l:'100%'}[d.sz])}
+ if(d.mkfree){makeFree(el);growEd()}
+ if(d.unfree){el.classList.remove('free');['--x','--y','--z'].forEach(p=>el.style.removeProperty(p));growEd()}
+ if(d.front){el.style.setProperty('--z',topZ()+1)}
  if(d.fl!==undefined){el.classList.remove('fl','fr');if(d.fl)el.classList.add(d.fl)}
  if(d.h)el.style.setProperty('--h',d.h+'px');
  if(d.rot){const r=parseFloat(el.style.getPropertyValue('--r'))||0;const nx=[-6,-3,0,3,6];el.style.setProperty('--r',nx[(nx.indexOf(Math.round(r/3)*3)+1)%nx.length]+'deg')}
- if(d.del){el.remove();deselect();changed();return}
+ if(d.del){el.remove();deselect();growEd();changed();return}
  if(d.x){deselect();return}
- renderBar();changed()};
+ renderBar();changed();requestAnimationFrame(renderHdl)};
 
 /* ---------- stickers ---------- */
 function openStickers(){renderStickers();openPanel('pStk')}
