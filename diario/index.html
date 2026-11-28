@@ -356,6 +356,8 @@ main{padding-bottom:calc(120px + var(--safe-b))}
 .mk.dot b{position:static;font-size:16px;text-shadow:none}
 .mk.dot svg.i{width:20px;height:20px}
 .leaflet-container{font-family:'Nunito',sans-serif}
+.mapbox .leaflet-bottom{bottom:calc(92px + var(--safe-b))}
+.leaflet-control-attribution{border-radius:8px 0 0 8px;font-size:10px}
 .leaflet-tile-pane{filter:saturate(.7) contrast(.95) brightness(1.04)}
 :root[data-theme=dark] .leaflet-tile-pane{filter:invert(.92) hue-rotate(180deg) saturate(.55) brightness(.95)}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) .leaflet-tile-pane{filter:invert(.92) hue-rotate(180deg) saturate(.55) brightness(.95)}}
@@ -712,7 +714,7 @@ function renderMeta(){const e=cur;
  $('#mLocTxt').textContent=e.loc?e.loc.name:'Agregar ubicación';
  $('#tagList').innerHTML=e.tags.map((t,i)=>`<span class="tag" style="--h:${hue(t)}">#${esc(t)}<button data-i="${i}" aria-label="Quitar etiqueta ${esc(t)}">${ic('x')}</button></span>`).join('')}
 
-const fitTitle=()=>{titleIn.style.height='auto';titleIn.style.height=titleIn.scrollHeight+'px'};
+const fitTitle=()=>{if(!titleIn.offsetParent)return;titleIn.style.height='auto';titleIn.style.height=titleIn.scrollHeight+'px'};
 titleIn.addEventListener('input',()=>{fitTitle();$('#topTitle').textContent=titleIn.value||'Hoja nueva';changed()});
 titleIn.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ed.focus()}});
 ed.addEventListener('input',changed);
@@ -942,7 +944,7 @@ function toggleVoice(){if(!SR)return toast('Este navegador no permite dictar ac�
 /* ---------- vistas ---------- */
 function show(id){$$('.view').forEach(v=>v.classList.toggle('on',v.id===id));$$('.tabs button[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===id));$('#bSet').classList.toggle('on',id==='vSet');
  const w=id==='vWrite';$('#bFocus').hidden=!w;$('#bMore').hidden=!w;$('#saveState').hidden=!w;
- if(!w){setTop('Súper Diario',{vList:'Entradas',vCal:'Calendario',vSet:'Ajustes',vMap:'Mapa'}[id]);deselect()}else if(cur)setTop(fmtKick(cur.date),cur.title||'Hoja nueva');
+ if(!w){setTop('Súper Diario',{vList:'Entradas',vCal:'Calendario',vSet:'Ajustes',vMap:'Mapa'}[id]);deselect()}else if(cur){setTop(fmtKick(cur.date),cur.title||'Hoja nueva');requestAnimationFrame(fitTitle)}
  if(id==='vList')renderList();if(id==='vCal')renderCal();if(id==='vSet')renderSet();if(id==='vMap')showMap()}
 $$('.tabs button[data-v]').forEach(b=>b.onclick=async()=>{if(b.dataset.v!=='vWrite')await flush();if(b.dataset.v==='vWrite'&&!cur)await openToday();show(b.dataset.v)});
 $('#bFab').onclick=async()=>{await openEntry(newEntry());titleIn.focus()};
@@ -1044,7 +1046,7 @@ function collectItems(){const out=[];for(const e of entries){if(isBlank(e))conti
    c={u:e.updated,h:e.html.length,ps};itemCache.set(e.id,c)}
   c.ps.forEach(p=>out.push({...p,e}));if(!c.ps.length&&e.loc&&isFinite(e.loc.lat))out.push({lat:e.loc.lat,lon:e.loc.lon,place:e.loc.name,e,entry:true})}
  return out}
-async function showMap(){$('#mapEmptyImg').src=BASESTK[7];
+async function showMap(){$('#mapEmptyImg').src=BASESTK[8];
  try{await ensureLeaflet()}catch{$('#mapEmpty').hidden=false;$('#mapEmpty').querySelector('b').textContent='Sin conexión';$('#mapEmptyTxt').textContent='El mapa necesita internet. Probá de nuevo cuando tengas conexión.';return}
  if(!lmap){lmap=L.map('map',{zoomControl:false,worldCopyJump:true}).setView([0,-30],2);addTiles(lmap);mlayer=L.layerGroup().addTo(lmap);lmap.on('zoomend moveend',drawMarkers)}
  await flush();setTimeout(()=>{lmap.invalidateSize();mItems=collectItems();$('#mapEmpty').hidden=mItems.length>0;if(firstFit&&mItems.length){fitAll();firstFit=false}drawMarkers()},60)}
