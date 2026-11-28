@@ -467,6 +467,32 @@ body.onhome .top{display:none}
 .hasphoto .hero small,.hasphoto .hero p{text-shadow:0 1px 8px rgba(0,0,0,.6)}
 .hasphoto .lock{background:linear-gradient(rgba(8,12,28,.5),rgba(8,12,28,.82)),var(--heroimg) center 62%/cover}
 
+
+/* ===== línea de tiempo ===== */
+.tline{position:relative;padding:0 0 10px 56px}
+.tline::before{content:"";position:absolute;left:23px;top:10px;bottom:30px;width:2.5px;border-radius:2px;background:repeating-linear-gradient(to bottom,color-mix(in srgb,var(--ink) 22%,transparent) 0 7px,transparent 7px 12px)}
+.tmon{position:relative;font:600 15px 'Fredoka',sans-serif;color:var(--mute);margin:6px 0 10px}
+.tmon::first-letter{text-transform:uppercase}
+.tmon::before{content:"";position:absolute;left:-38px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--bg);border:2.5px solid color-mix(in srgb,var(--ink) 30%,transparent)}
+.ti{position:relative;display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;align-items:center;width:100%;text-align:left;background:var(--ui);border:1px solid var(--line);border-radius:20px;padding:9px 12px 9px 9px;margin-bottom:12px;box-shadow:0 2px 0 var(--line);transition:transform .15s}
+.ti:active{transform:scale(.98)}
+.ti .dt{position:absolute;left:-56px;top:50%;width:48px;height:48px;margin-top:-24px;border-radius:50%;display:grid;place-content:center;justify-items:center;line-height:1;background:color-mix(in srgb,var(--c) 42%,var(--ui));color:var(--ink);box-shadow:0 0 0 3px var(--bg),0 0 0 5.5px var(--c)}
+.ti .dt b{font:600 18px 'Fredoka',sans-serif}
+.ti .dt small{font:500 10px 'Fredoka',sans-serif;opacity:.75;margin-top:1px}
+.ti.hoy .dt{background:var(--c);color:#22252d}
+.ti .im{width:58px;height:58px;border-radius:14px;object-fit:cover;display:block}
+.ti .fc{width:58px;height:58px;border-radius:14px;background:color-mix(in srgb,var(--c) 18%,var(--ui2));display:grid;place-items:center}
+.ti .fc svg{width:38px;height:38px}
+.ti .fc svg.i{width:26px;height:26px;color:var(--mute)}
+.ti h4{margin:0;font:600 16.5px/1.25 'Fredoka',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti p{margin:2px 0 0;font-size:13.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti .sub{display:flex;align-items:center;gap:4px;margin-top:4px;font-size:12.5px;font-weight:700;color:var(--mute);white-space:nowrap;overflow:hidden}
+.ti .sub svg.i{width:14px;height:14px;flex:none}
+.ti .sub i{font-style:normal;overflow:hidden;text-overflow:ellipsis;flex:none}
+.ti .sub i:last-child{flex:0 1 auto;min-width:0}
+.tmore{margin:4px 0 0 -56px;width:calc(100% + 56px);justify-content:center}
+.tempty{color:var(--mute);padding:6px 0 18px}
+
 @media(min-width:700px){.sheet{margin:18px 24px 30px;padding-left:40px;padding-right:40px}.sheet[data-paper=lined]{padding-left:76px}.sheet[data-paper=lined]::before{left:56px}.pad{padding:22px 24px}}
 @media(max-width:420px){.moodname{display:none}.stats b{font-size:24px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -501,8 +527,8 @@ body.onhome .top{display:none}
     <div class="today" id="hToday"></div>
     <div class="stats" id="hStats"></div>
     <div id="hMemory"></div>
-    <h3 class="hsec">Últimas hojas</h3>
-    <div class="recent" id="hRecent"></div>
+    <h3 class="hsec">Tu historia</h3>
+    <div class="tline" id="hRecent"></div>
   </div>
 </section>
 
@@ -1215,11 +1241,19 @@ function renderHome(){const h=new Date().getHours(),list=sorted().filter(e=>!isB
  if(mem.length){const n=yr-+mem[0].date.slice(0,4);lbl=`Un día como hoy · hace ${n} año${n>1?'s':''}`}
  else{for(const [d,l] of [[7,'Hace una semana'],[30,'Hace un mes']]){const x=new Date();x.setDate(x.getDate()-d);mem=list.filter(e=>e.date===isoDay(x));if(mem.length){lbl=l;break}}}
  if(mem.length){const e=mem[0],img=firstImg(e.html);$('#hMemory').innerHTML=`<button class="memory" data-open="${e.id}">${img?`<img src="${img}" alt="">`:'<span class="ph0"></span>'}<span style="min-width:0;display:block"><small>${lbl}</small><b>${esc(e.title||fmtLong(e.date))}</b><span>${esc(plain(e.html).slice(0,120))}</span></span></button>`}else $('#hMemory').innerHTML='';
- $('#hRecent').innerHTML=list.slice(0,8).map(e=>{const img=firstImg(e.html),mo=MOODS.find(x=>x.k===e.mood);return `<button class="rc" data-open="${e.id}"><div class="cv">${img?`<img src="${img}" alt="">`:mo?face(mo):''}</div><div class="t2"><small>${fmtShort(e.date)}</small><b>${esc(e.title||plain(e.html).slice(0,40)||'Sin título')}</b></div></button>`}).join('')+`<button class="rc new" id="hNew"><div class="cv">${ic('plus')}</div><div class="t2"><small>Nueva</small><b>Empezar una hoja</b></div></button>`}
+ let tl='',lastM='';
+ for(const e of list.slice(0,12)){const d=parseDay(e.date),mk=e.date.slice(0,7),mo=MOODS.find(x=>x.k===e.mood),c=mo?mo.c:'var(--cover)',th=firstThumb(e.html),txt=plain(e.html);
+  if(mk!==lastM){lastM=mk;tl+=`<div class="tmon">${d.toLocaleDateString('es-AR',{month:'long',year:'numeric'})}</div>`}
+  const place=e.loc&&e.loc.name?e.loc.name:'',bits=[mo?mo.n:'',place?'':(e.tags[0]?'#'+e.tags[0]:'')].filter(Boolean);
+  tl+=`<button class="ti${e.date===t?' hoy':''}" data-open="${e.id}" style="--c:${c}"><span class="dt"><b>${d.getDate()}</b><small>${e.date===t?'hoy':d.toLocaleDateString('es-AR',{weekday:'short'}).replace('.','')}</small></span>${th?`<img class="im" src="${th}" alt="">`:`<span class="fc">${mo?face(mo):ic('pen')}</span>`}<span style="min-width:0"><h4>${esc(e.title||txt.slice(0,40)||'Sin título')}</h4>${e.title&&txt?`<p>${esc(txt.slice(0,80))}</p>`:''}<span class="sub">${bits.length?`<i>${esc(bits.join(' · '))}</i>`:''}${place?`${bits.length?'<i>·</i>':''}${ic('pin')}<i>${esc(place)}</i>`:''}</span></span></button>`}
+ if(!list.length)tl='<p class="tempty">Tu historia empieza con la primera hoja. Tocá el + para escribirla.</p>';
+ else if(list.length>12)tl+=`<button class="btn ghost tmore" id="hAll">Ver todas las hojas (${list.length})</button>`;
+ $('#hRecent').innerHTML=tl}
+const firstThumb=html=>{const m=/data-thumb="(data:image\/[^"]+)"/.exec(html||'');return m?m[1]:firstImg(html)};
 $('#vHome').addEventListener('click',async e=>{const o=e.target.closest('[data-open]'),mo=e.target.closest('[data-mood]');
  if(o)return openEntry(byId(o.dataset.open));
  if(mo){const en=newEntry();en.mood=+mo.dataset.mood;await openEntry(en);dirty=true;flush();titleIn.focus();return}
- if(e.target.closest('#hNew')){await openEntry(newEntry());titleIn.focus()}});
+ if(e.target.closest('#hAll'))show('vList')});
 $('#hSet').onclick=()=>show('vSet');
 $('#hLock').onclick=()=>showLock('unlock');
 
